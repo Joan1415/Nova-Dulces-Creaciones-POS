@@ -437,6 +437,8 @@ const normalizeTime = (value) => {
     setSelectedOrderReceipt(newOrder);
   };
 
+
+  
   // Abrir Modal para editar pedido
   const startEditingOrder = (order) => {
     setEditingOrder(JSON.parse(JSON.stringify(order)));
@@ -472,7 +474,11 @@ const normalizeTime = (value) => {
           method: 'POST',
           mode: 'no-cors',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'crearPedido', pedido: updatedOrder, detalles: updatedOrder.detalles })
+          body: JSON.stringify({
+          action: 'actualizarPedido',
+          pedido: updatedOrder,
+          detalles: updatedOrder.detalles
+        })
         });
       } catch (err) {
         console.error('Error actualizando pedido en Sheets:', err);
