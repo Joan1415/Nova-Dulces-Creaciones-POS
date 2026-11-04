@@ -231,16 +231,36 @@ const formatDate = (value) => {
   return text;
 };
 
-const normalizeTime = (value) => {
-  if (!value) return "";
+  const normalizeTime = (value) => {
+    if (!value) return "";
 
-  const text = String(value).trim();
+    const text = String(value).trim();
 
-  // Ejemplo: 1899-12-30T14:00:00 -> 14:00
-  const isoMatch = text.match(/T(\d{2}):(\d{2})/);
-  if (isoMatch) {
-    return `${isoMatch[1]}:${isoMatch[2]}`;
-  }
+    // 1. Extraer HH:MM ya sea de una fecha ISO o formato simple
+    let hours = 0;
+    let minutes = "";
+    
+    const isoMatch = text.match(/T(\d{2}):(\d{2})/);
+    const timeMatch = text.match(/^(\d{1,2}):(\d{2})/);
+
+    if (isoMatch) {
+      hours = parseInt(isoMatch[1], 10);
+      minutes = isoMatch[2];
+    } else if (timeMatch) {
+      hours = parseInt(timeMatch[1], 10);
+      minutes = timeMatch[2];
+    } else {
+      return text; // Si no reconoce el formato, devuelve el valor original
+    }
+
+    // 2. Convertir mecánicamente a formato 12 horas (AM/PM) en la carga inicial
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    let h12 = hours % 12;
+    h12 = h12 ? h12 : 12; // Si es 00, se transforma en 12
+
+    return `${String(h12).padStart(2, "0")}:${minutes} ${ampm}`;
+  };
+
 
   // Ejemplo: 14:00:00 -> 14:00
   const timeMatch = text.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
