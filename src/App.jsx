@@ -126,50 +126,48 @@ export default function App() {
   useEffect(() => { localStorage.setItem('nova_expenses', JSON.stringify(expenses)); }, [expenses]);
   useEffect(() => { localStorage.setItem('nova_api_url', apiUrl); }, [apiUrl]);
   // Sincronizar pedidos desde Google Sheets de forma segura y blindada
-useEffect(() => {
-  if (!apiUrl) return;
-  
-  fetch(apiUrl)
-    .then(res => {
-      if (!res.ok) throw new Error('Error en la respuesta de la red');
-      return res.json();
-    })
-    .then(response => {
-      try {
-        if (response && response.success && response.data && Array.isArray(response.data.pedidos)) {
-          // Limpiar y validar cada pedido para evitar que rompan la interfaz
-          const safeOrders = response.data.pedidos
-            .filter(o => o && typeof o === 'object')
-            .map(o => ({
-              idPedido: o.idPedido || 'PED-0000',
-              fechaRegistro: o.fechaRegistro || '',
-              fechaEntrega: o.fechaEntrega || new Date().toISOString().split('T')[0],
-              horaEntrega: o.horaEntrega || '14:00',
-              cliente: o.cliente || 'Cliente General',
-              telefono: o.telefono || '',
-              tipoEntrega: o.tipoEntrega || 'Retiro en Tienda',
-              costoDelivery: Number(o.costoDelivery) || 0,
-              llevaExtras: Boolean(o.llevaExtras),
-              detallesExtras: o.detallesExtras || '',
-              costoExtras: Number(o.costoExtras) || 0,
-              direccionNotas: o.direccionNotas || '',
-              metodoPago: o.metodoPago || 'Efectivo',
-              estado: o.estado || 'Por confirmar',
-              totalPedido: Number(o.totalPedido) || 0,
-              costoProduccion: Number(o.costoProduccion) || 0,
-              gananciaNeta: Number(o.gananciaNeta) || 0,
-              detalles: Array.isArray(o.detalles) ? o.detalles : []
+  // Sincronizar datos y pedidos desde Google Sheets de forma exacta
+  useEffect(() => {
+    if (!apiUrl) return;
+    
+    fetch(apiUrl)
+      .then(res => res.json())
+      .then(response => {
+        try {
+          // Tu Apps Script responde con { success: true, data: { catalogo, pedidos, detalles, gastos } }
+          const rawData = response?.data || response;
+          
+          if (rawData && Array.isArray(rawData.pedidos)) {
+            const mappedOrders = rawData.pedidos.map(o => ({
+              idPedido: o.idPedido || o[0] || 'PED-0000',
+              fechaRegistro: o.fechaRegistro || o[1] || '',
+              fechaEntrega: o.fechaEntrega || o[2] || new Date().toISOString().split('T')[0],
+              horaEntrega: o.horaEntrega || o[3] || '14:00',
+              cliente: o.cliente || o[4] || 'Cliente General',
+              telefono: o.telefono || o[5] || '',
+              tipoEntrega: o.tipoEntrega || o[6] || 'Retiro en Tienda',
+              costoDelivery: Number(o.costoDelivery || o[7]) || 0,
+              llevaExtras: Boolean(o.llevaExtras ?? o[8]),
+              detallesExtras: o.detallesExtras || o[9] || '',
+              costoExtras: Number(o.costoExtras || o[10]) || 0,
+              direccionNotas: o.direccionNotas || o[11] || '',
+              metodoPago: o.metodoPago || o[12] || 'Efectivo',
+              estado: o.estado || o[13] || 'Por confirmar',
+              totalPedido: Number(o.totalPedido || o[14]) || 0,
+              costoProduccion: Number(o.costoProduccion || o[15]) || 0,
+              gananciaNeta: Number(o.gananciaNeta || o[16]) || 0,
+              detalles: []
             }));
-          setOrders(safeOrders);
+            setOrders(mappedOrders);
+          }
+        } catch (innerErr) {
+          console.error('Error mapeando los datos de Google Sheets:', innerErr);
         }
-      } catch (innerErr) {
-        console.error('Error procesando los datos de la nube:', innerErr);
-      }
-    })
-    .catch(err => {
-      console.error('Error de red al conectar con Google Sheets:', err);
-    });
-}, [apiUrl]);
+      })
+      .catch(err => {
+        console.error('Error de red al conectar con Google Sheets:', err);
+      });
+  }, [apiUrl]);
   
   // Carrito helpers
   const addToCart = (product) => {
