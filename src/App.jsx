@@ -305,9 +305,23 @@ const normalizeTime = (value) => {
 
       const data = response.data;
 
-      console.log("CATÁLOGO RECIBIDO DE SHEETS:", data.catalogo);
-      console.log("PRIMER PRODUCTO DE SHEETS:", data.catalogo[0]);
-      console.log("COLUMNAS DEL PRODUCTO:", Object.keys(data.catalogo[0] || {}));
+          if (Array.isArray(data.catalogo)) {
+            const realProducts = data.catalogo.map((product) => ({
+              id: String(product.ID || ''),
+              nombre: String(product.Producto || ''),
+              categoria: String(product['Categoría'] || ''),
+              precio: Number(product['Precio Venta (DOP)'] || 0),
+              costo: Number(product['Costo Producción (DOP)'] || 0),
+              activo:
+                product.Activo === true ||
+                String(product.Activo).toLowerCase() === 'true'
+            }));
+          
+            setProducts(realProducts);
+            localStorage.setItem('nova_products', JSON.stringify(realProducts));
+          
+            console.info('Productos cargados desde Google Sheets:', realProducts.length);
+          }
 
       if (!data || !Array.isArray(data.pedidos)) {
         throw new Error("La respuesta no contiene data.pedidos");
@@ -652,26 +666,91 @@ const normalizeTime = (value) => {
     }
   };
 
-  // Guardar/Editar Producto Catálogo
-  const handleSaveProduct = (e) => {
-    e.preventDefault();
-    const formData = new FormData(e.target);
-    const prodData = {
-      id: productModal.data?.id || `P${String(products.length + 1).padStart(3, '0')}`,
-      nombre: formData.get('nombre'),
-      categoria: formData.get('categoria'),
-      precio: Number(formData.get('precio')),
-      costo: Number(formData.get('costo')),
-      activo: formData.get('activo') === 'on'
-    };
 
-    if (productModal.data) {
-      setProducts(prev => prev.map(p => p.id === prodData.id ? prodData : p));
-    } else {
-      setProducts(prev => [...prev, prodData]);
-    }
-    setProductModal({ open: false, data: null });
-  };
+  // Guardar/Editar Producto Catálogo
+  const handleSaveProduct = async (e) => {
+        e.preventDefault();
+    
+        const formData = new FormData(e.target);
+        const isEditing = Boolean(productModal.data);
+    
+        const nextId = `P${String(
+          products.reduce((max, p) => {
+            const match = String(p.id || '').match(/^P(\d+)$/);
+            return match ? Math.max(max, Number(match[1])) : max;
+          }, 0) + 1
+        ).padStart(3, '0')}`;
+    
+        const prodData = {
+          id: productModal.data?.id || nextId,
+          nombre: String(formData.get('nombre') || '').trim(),
+          categoria: String(formData.get('categoria') || ''),
+          precio: Number(formData.get('precio') || 0),
+          costo: Number(formData.get('costo') || 0),
+          activo: formData.get('activo') === 'on'
+        };
+    
+        if (!prodData.nombre) {
+          alert('Por favor, ingresa el nombre del producto.');
+          return;
+        }
+    
+        if (!Number.isFinite(prodData.precio) ||
+            !Number.isFinite(prodData.costo)) {
+          alert('El precio y el costo deben ser números válidos.');
+          return;
+        }
+    
+        if (!apiUrl) {
+          alert('No se encontró la URL de Apps Script.');
+          return;
+        }
+    
+        try {
+          await fetch(apiUrl, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: {
+              'Content-Type': 'text/plain;charset=utf-8'
+            },
+            body: JSON.stringify({
+              action: 'guardarProducto',
+              producto: {
+                id: prodData.id,
+                nombre: prodData.nombre,
+                categoria: prodData.categoria,
+                precio: prodData.precio,
+                costo: prodData.costo
+              }
+            })
+          });
+    
+          // Actualizar la interfaz después de enviar la solicitud.
+          setProducts(prev => {
+            const exists = prev.some(p => p.id === prodData.id);
+    
+            const updated = exists
+              ? prev.map(p => p.id === prodData.id ? prodData : p)
+              : [...prev, prodData];
+    
+            localStorage.setItem('nova_products', JSON.stringify(updated));
+            return updated;
+          });
+    
+          setProductModal({ open: false, data: null });
+    
+          alert(
+            isEditing
+              ? 'Solicitud de actualización enviada.'
+              : 'Solicitud de creación enviada.'
+          );
+    
+        } catch (error) {
+          console.error('Error enviando producto a Google Sheets:', error);
+          alert('No se pudo enviar el producto. Revisa tu conexión e inténtalo de nuevo.');
+        }
+      };
+
 
   // Guardar Gasto
   const handleAddExpense = (e) => {
