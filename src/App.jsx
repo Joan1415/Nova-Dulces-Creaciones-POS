@@ -125,6 +125,19 @@ export default function App() {
   useEffect(() => { localStorage.setItem('nova_orders', JSON.stringify(orders)); }, [orders]);
   useEffect(() => { localStorage.setItem('nova_expenses', JSON.stringify(expenses)); }, [expenses]);
   useEffect(() => { localStorage.setItem('nova_api_url', apiUrl); }, [apiUrl]);
+  // Sincronizar pedidos desde Google Sheets al iniciar la app
+  useEffect(() => {
+    if (apiUrl) {
+      fetch(apiUrl)
+        .then(res => res.json())
+        .then(data => {
+          if (data && Array.isArray(data.orders)) {
+            setOrders(data.orders);
+          }
+        })
+        .catch(err => console.error('Error cargando pedidos de la nube:', err));
+    }
+  }, [apiUrl]);
 
   // Carrito helpers
   const addToCart = (product) => {
