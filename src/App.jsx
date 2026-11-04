@@ -78,9 +78,10 @@ export default function App() {
     const saved = localStorage.getItem('nova_expenses');
     return saved ? JSON.parse(saved) : [];
   });
+
+  // URL padronizada padrão para Google Sheets
   const [apiUrl, setApiUrl] = useState(() => {
-  return localStorage.getItem('nova_api_url') || 'https://script.google.com/macros/s/AKfycbwTBYKfD9ne5mfxuMUxVnouMRJbrkn9SEAC2VVVniPFcmXBmnxAyt-QnokkKvcdemoF/exec';
-});
+    return localStorage.getItem('nova_api_url') || 'https://script.google.com/macros/s/AKfycbwTBYKfD9ne5mfxuMUxVnouMRJbrkn9SEAC2VVVniPFcmXBmnxAyt-QnokkKvcdemoF/exec';
   });
 
   // Filtros POS
@@ -407,8 +408,8 @@ export default function App() {
               <ChefHat size={24} />
             </div>
             <div>
-              <h1 className="font-bold text-lg leading-none tracking-wide text-[#FAF6EF]">NOVA DULCES CREACIONES</h1>
-              
+              <h1 className="font-bold text-lg leading-none tracking-wide text-[#FAF6EF]">NOVA</h1>
+              <p className="text-xs text-[#D6BC80] font-light">Dulces Creaciones</p>
             </div>
           </div>
 
@@ -555,7 +556,7 @@ export default function App() {
                     placeholder="Buscar postre o bocadillo..." 
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full px-4 py-2 rounded-xl border border-[#D6BC80] focus:outline-none focus:ring-2 focus:ring-[#A56A41]"
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 text-sm bg-[#4A3B32] text-white focus:outline-none focus:ring-2 focus:ring-[#A56A41] placeholder-gray-300"
                   />
                   <div className="flex flex-wrap gap-2">
                     {CATEGORIAS.map(cat => (
@@ -683,7 +684,7 @@ export default function App() {
                       required
                       value={checkoutForm.cliente} 
                       onChange={e => setCheckoutForm({ ...checkoutForm, cliente: e.target.value })}
-                      className="w-full p-2.5 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-[#A56A41]"
+                      className="w-full p-2.5 rounded-xl border border-gray-300 text-sm bg-[#4A3B32] text-white font-medium focus:ring-2 focus:ring-[#A56A41] placeholder-gray-300"
                       placeholder="Ej. María Pérez"
                     />
                   </div>
@@ -693,7 +694,7 @@ export default function App() {
                       type="text" 
                       value={checkoutForm.telefono} 
                       onChange={e => setCheckoutForm({ ...checkoutForm, telefono: e.target.value })}
-                      className="w-full p-2.5 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-[#A56A41]"
+                      className="w-full p-2.5 rounded-xl border border-gray-300 text-sm bg-[#4A3B32] text-white font-medium focus:ring-2 focus:ring-[#A56A41] placeholder-gray-300"
                       placeholder="Ej. 809-555-0199"
                     />
                   </div>
@@ -703,7 +704,7 @@ export default function App() {
                     <select 
                       value={checkoutForm.tipoEntrega} 
                       onChange={e => setCheckoutForm({ ...checkoutForm, tipoEntrega: e.target.value })}
-                      className="w-full p-2.5 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-[#A56A41]"
+                      className="w-full p-2.5 rounded-xl border border-gray-300 text-sm bg-[#4A3B32] text-white font-semibold focus:ring-2 focus:ring-[#A56A41]"
                     >
                       <option value="Retiro en Tienda">Retiro en Tienda</option>
                       <option value="Delivery">Delivery</option>
@@ -716,7 +717,7 @@ export default function App() {
                         type="number" 
                         value={checkoutForm.costoDelivery} 
                         onChange={e => setCheckoutForm({ ...checkoutForm, costoDelivery: e.target.value })}
-                        className="w-full p-2.5 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-[#A56A41]"
+                        className="w-full p-2.5 rounded-xl border border-gray-300 text-sm bg-[#4A3B32] text-white font-medium focus:ring-2 focus:ring-[#A56A41] placeholder-gray-300"
                         placeholder="Ej. 200"
                       />
                     </div>
@@ -746,7 +747,7 @@ export default function App() {
                             value={checkoutForm.detallesExtras}
                             onChange={e => setCheckoutForm({ ...checkoutForm, detallesExtras: e.target.value })}
                             placeholder="Ej. Topper de Feliz Cumpleaños y 2 velitas doradas"
-                            className="w-full p-2.5 rounded-xl border border-gray-300 text-sm bg-white"
+                            className="w-full p-2.5 rounded-xl border border-gray-300 text-sm bg-[#4A3B32] text-white font-medium placeholder-gray-300"
                           />
                         </div>
                         <div>
@@ -756,7 +757,7 @@ export default function App() {
                             value={checkoutForm.costoExtras}
                             onChange={e => setCheckoutForm({ ...checkoutForm, costoExtras: e.target.value })}
                             placeholder="Ej. 250"
-                            className="w-full p-2.5 rounded-xl border border-gray-300 text-sm bg-white"
+                            className="w-full p-2.5 rounded-xl border border-gray-300 text-sm bg-[#4A3B32] text-white font-medium placeholder-gray-300"
                           />
                         </div>
                       </div>
@@ -769,7 +770,7 @@ export default function App() {
                       type="date" 
                       value={checkoutForm.fechaEntrega} 
                       onChange={e => setCheckoutForm({ ...checkoutForm, fechaEntrega: e.target.value })}
-                      className="w-full p-2.5 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-[#A56A41]"
+                      className="w-full p-2.5 rounded-xl border border-gray-300 text-sm bg-[#4A3B32] text-white font-semibold focus:ring-2 focus:ring-[#A56A41] [color-scheme:dark]"
                     />
                   </div>
 
@@ -781,7 +782,7 @@ export default function App() {
                       type="time" 
                       value={checkoutForm.horaEntrega} 
                       onChange={e => setCheckoutForm({ ...checkoutForm, horaEntrega: e.target.value })}
-                      className="w-full p-2.5 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-[#A56A41]"
+                      className="w-full p-2.5 rounded-xl border border-gray-300 text-sm bg-[#4A3B32] text-white font-semibold focus:ring-2 focus:ring-[#A56A41] [color-scheme:dark]"
                     />
                   </div>
 
@@ -790,7 +791,7 @@ export default function App() {
                     <select 
                       value={checkoutForm.metodoPago} 
                       onChange={e => setCheckoutForm({ ...checkoutForm, metodoPago: e.target.value })}
-                      className="w-full p-2.5 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-[#A56A41]"
+                      className="w-full p-2.5 rounded-xl border border-gray-300 text-sm bg-[#4A3B32] text-white font-semibold focus:ring-2 focus:ring-[#A56A41]"
                     >
                       {METODOS_PAGO.map(m => <option key={m} value={m}>{m}</option>)}
                     </select>
@@ -802,7 +803,7 @@ export default function App() {
                       rows="2"
                       value={checkoutForm.direccionNotas} 
                       onChange={e => setCheckoutForm({ ...checkoutForm, direccionNotas: e.target.value })}
-                      className="w-full p-2.5 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-[#A56A41]"
+                      className="w-full p-2.5 rounded-xl border border-gray-300 text-sm bg-[#4A3B32] text-white font-medium focus:ring-2 focus:ring-[#A56A41] placeholder-gray-300"
                       placeholder="Detalles del bizcocho, dedicatoria o dirección..."
                     />
                   </div>
@@ -1002,7 +1003,7 @@ export default function App() {
                 <select 
                   value={expenseForm.categoria}
                   onChange={e => setExpenseForm({ ...expenseForm, categoria: e.target.value })}
-                  className="p-2 border rounded-xl text-sm"
+                  className="p-2 border rounded-xl text-sm bg-[#4A3B32] text-white font-semibold"
                 >
                   {CATEGORIAS_GASTO.map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
@@ -1011,14 +1012,14 @@ export default function App() {
                   placeholder="Descripción del gasto..."
                   value={expenseForm.descripcion}
                   onChange={e => setExpenseForm({ ...expenseForm, descripcion: e.target.value })}
-                  className="p-2 border rounded-xl text-sm"
+                  className="p-2 border rounded-xl text-sm bg-[#4A3B32] text-white font-medium placeholder-gray-300"
                 />
                 <input 
                   type="number" 
                   placeholder="Monto (DOP)..."
                   value={expenseForm.monto}
                   onChange={e => setExpenseForm({ ...expenseForm, monto: e.target.value })}
-                  className="p-2 border rounded-xl text-sm"
+                  className="p-2 border rounded-xl text-sm bg-[#4A3B32] text-white font-medium placeholder-gray-300"
                 />
                 <button type="submit" className="bg-[#A56A41] text-white rounded-xl text-sm font-bold py-2">Guardar Gasto</button>
               </form>
@@ -1041,7 +1042,7 @@ export default function App() {
                 value={apiUrl}
                 onChange={e => setApiUrl(e.target.value)}
                 placeholder="https://script.google.com/macros/s/.../exec"
-                className="w-full p-2.5 border rounded-xl text-xs font-mono"
+                className="w-full p-2.5 border rounded-xl text-xs font-mono bg-[#4A3B32] text-white font-medium"
               />
             </div>
 
@@ -1095,7 +1096,7 @@ export default function App() {
                   <select 
                     value={selectedAddProduct}
                     onChange={e => setSelectedAddProduct(e.target.value)}
-                    className="flex-1 p-2 border rounded-xl text-xs bg-white"
+                    className="flex-1 p-2 border rounded-xl text-xs bg-[#4A3B32] text-white font-semibold"
                   >
                     <option value="">-- Agregar otro producto del catálogo --</option>
                     {products.map(p => <option key={p.id} value={p.id}>{p.nombre} (RD$ {p.precio})</option>)}
@@ -1118,7 +1119,7 @@ export default function App() {
                     type="text" required 
                     value={editingOrder.cliente}
                     onChange={e => setEditingOrder({ ...editingOrder, cliente: e.target.value })}
-                    className="w-full p-2 border rounded-xl"
+                    className="w-full p-2 border rounded-xl bg-[#4A3B32] text-white font-medium"
                   />
                 </div>
                 <div>
@@ -1127,7 +1128,7 @@ export default function App() {
                     type="text" 
                     value={editingOrder.telefono}
                     onChange={e => setEditingOrder({ ...editingOrder, telefono: e.target.value })}
-                    className="w-full p-2 border rounded-xl"
+                    className="w-full p-2 border rounded-xl bg-[#4A3B32] text-white font-medium"
                   />
                 </div>
                 <div>
@@ -1135,7 +1136,7 @@ export default function App() {
                   <select 
                     value={editingOrder.tipoEntrega}
                     onChange={e => setEditingOrder({ ...editingOrder, tipoEntrega: e.target.value })}
-                    className="w-full p-2 border rounded-xl"
+                    className="w-full p-2 border rounded-xl bg-[#4A3B32] text-white font-semibold"
                   >
                     <option value="Retiro en Tienda">Retiro en Tienda</option>
                     <option value="Delivery">Delivery</option>
@@ -1148,7 +1149,7 @@ export default function App() {
                       type="number" 
                       value={editingOrder.costoDelivery}
                       onChange={e => setEditingOrder({ ...editingOrder, costoDelivery: Number(e.target.value) })}
-                      className="w-full p-2 border rounded-xl"
+                      className="w-full p-2 border rounded-xl bg-[#4A3B32] text-white font-medium"
                     />
                   </div>
                 )}
@@ -1158,7 +1159,7 @@ export default function App() {
                     type="date" 
                     value={editingOrder.fechaEntrega}
                     onChange={e => setEditingOrder({ ...editingOrder, fechaEntrega: e.target.value })}
-                    className="w-full p-2 border rounded-xl"
+                    className="w-full p-2 border rounded-xl bg-[#4A3B32] text-white font-semibold [color-scheme:dark]"
                   />
                 </div>
                 <div>
@@ -1167,7 +1168,7 @@ export default function App() {
                     type="time" 
                     value={editingOrder.horaEntrega}
                     onChange={e => setEditingOrder({ ...editingOrder, horaEntrega: e.target.value })}
-                    className="w-full p-2 border rounded-xl"
+                    className="w-full p-2 border rounded-xl bg-[#4A3B32] text-white font-semibold [color-scheme:dark]"
                   />
                 </div>
 
@@ -1190,14 +1191,14 @@ export default function App() {
                         placeholder="Detalles de extras..."
                         value={editingOrder.detallesExtras}
                         onChange={e => setEditingOrder({ ...editingOrder, detallesExtras: e.target.value })}
-                        className="md:col-span-2 p-2 border rounded-lg text-xs bg-white"
+                        className="md:col-span-2 p-2 border rounded-lg text-xs bg-[#4A3B32] text-white font-medium placeholder-gray-300"
                       />
                       <input 
                         type="number" 
                         placeholder="Monto Extras (DOP)"
                         value={editingOrder.costoExtras}
                         onChange={e => setEditingOrder({ ...editingOrder, costoExtras: Number(e.target.value) })}
-                        className="p-2 border rounded-lg text-xs bg-white"
+                        className="p-2 border rounded-lg text-xs bg-[#4A3B32] text-white font-medium placeholder-gray-300"
                       />
                     </div>
                   )}
@@ -1208,7 +1209,7 @@ export default function App() {
                   <select 
                     value={editingOrder.estado}
                     onChange={e => setEditingOrder({ ...editingOrder, estado: e.target.value })}
-                    className="w-full p-2 border rounded-xl font-bold"
+                    className="w-full p-2 border rounded-xl font-bold bg-[#4A3B32] text-white"
                   >
                     {ESTADOS.map(st => <option key={st} value={st}>{st}</option>)}
                   </select>
@@ -1219,7 +1220,7 @@ export default function App() {
                   <select 
                     value={editingOrder.metodoPago}
                     onChange={e => setEditingOrder({ ...editingOrder, metodoPago: e.target.value })}
-                    className="w-full p-2 border rounded-xl"
+                    className="w-full p-2 border rounded-xl bg-[#4A3B32] text-white font-semibold"
                   >
                     {METODOS_PAGO.map(m => <option key={m} value={m}>{m}</option>)}
                   </select>
@@ -1231,7 +1232,7 @@ export default function App() {
                     rows="2"
                     value={editingOrder.direccionNotas}
                     onChange={e => setEditingOrder({ ...editingOrder, direccionNotas: e.target.value })}
-                    className="w-full p-2 border rounded-xl text-xs"
+                    className="w-full p-2 border rounded-xl text-xs bg-[#4A3B32] text-white font-medium placeholder-gray-300"
                   />
                 </div>
               </div>
@@ -1267,22 +1268,22 @@ export default function App() {
             <form onSubmit={handleSaveProduct} className="space-y-3 text-sm">
               <div>
                 <label className="block text-xs font-bold mb-1">Nombre Producto</label>
-                <input name="nombre" defaultValue={productModal.data?.nombre || ''} required className="w-full p-2 border rounded-lg" />
+                <input name="nombre" defaultValue={productModal.data?.nombre || ''} required className="w-full p-2 border rounded-lg bg-[#4A3B32] text-white font-medium" />
               </div>
               <div>
                 <label className="block text-xs font-bold mb-1">Categoría</label>
-                <select name="categoria" defaultValue={productModal.data?.categoria || 'Enteros'} className="w-full p-2 border rounded-lg">
+                <select name="categoria" defaultValue={productModal.data?.categoria || 'Enteros'} className="w-full p-2 border rounded-lg bg-[#4A3B32] text-white font-semibold">
                   {CATEGORIAS.filter(c => c !== 'Todos').map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="block text-xs font-bold mb-1">Precio Venta (DOP)</label>
-                  <input name="precio" type="number" defaultValue={productModal.data?.precio || ''} required className="w-full p-2 border rounded-lg" />
+                  <input name="precio" type="number" defaultValue={productModal.data?.precio || ''} required className="w-full p-2 border rounded-lg bg-[#4A3B32] text-white font-medium" />
                 </div>
                 <div>
                   <label className="block text-xs font-bold mb-1">Costo Estimado (DOP)</label>
-                  <input name="costo" type="number" defaultValue={productModal.data?.costo || ''} required className="w-full p-2 border rounded-lg" />
+                  <input name="costo" type="number" defaultValue={productModal.data?.costo || ''} required className="w-full p-2 border rounded-lg bg-[#4A3B32] text-white font-medium" />
                 </div>
               </div>
               <div className="flex items-center gap-2 pt-2">
