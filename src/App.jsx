@@ -99,14 +99,15 @@ cformatDisplayDate = (value) => {
 
 
 export default function App() {
-  c[activeTab, setActiveTab] = useState('pos');
- const [calendarMonth, setCalendarMonth] = useState(() => new Date());
-  const [selectedCalendarDate, setSelectedCalendarDate] = useState(() => {
-    const today = new Date();
-    return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-  });
-  // Nuevo estado para alternar entre vista 'mes' y 'dia'
-  const [calendarView, setCalendarView] = useState('mes'); 
+    const [activeTab, setActiveTab] = useState('pos');
+    const [calendarMonth, setCalendarMonth] = useState(() => new Date());
+    const [selectedCalendarDate, setSelectedCalendarDate] = useState(() => {
+      const today = new Date();
+      return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    });
+    // Nuevo estado para alternar entre vista 'mes' y 'dia'
+    const [calendarView, setCalendarView] = useState('mes'); 
+
   
   const [products, setProducts] = useState(() => {
     const saved = localStorage.getItem('nova_products');
