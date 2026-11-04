@@ -100,11 +100,14 @@ const formatDisplayDate = (value) => {
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('pos');
-  const [calendarMonth, setCalendarMonth] = useState(() => new Date());
+ onst [calendarMonth, setCalendarMonth] = useState(() => new Date());
   const [selectedCalendarDate, setSelectedCalendarDate] = useState(() => {
     const today = new Date();
     return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
   });
+  // Nuevo estado para alternar entre vista 'mes' y 'dia'
+  const [calendarView, setCalendarView] = useState('mes'); 
+  
   const [products, setProducts] = useState(() => {
     const saved = localStorage.getItem('nova_products');
     return saved ? JSON.parse(saved) : INITIAL_PRODUCTS;
@@ -851,237 +854,195 @@ export default function App() {
             
             
             
-            {/* SECCIÓN CALENDARIO Y AGENDA DE ENTREGAS */}
+                       {/* SECCIÓN CALENDARIO Y AGENDA DE ENTREGAS CON VISTA MES/DÍA */}
             <div className="bg-white p-5 rounded-2xl shadow-sm border border-[#E8DCC4]">
               <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
                 <div className="flex items-center gap-2">
                   <CalendarIcon size={24} className="text-[#A56A41]" />
                   <div>
                     <h2 className="font-bold text-lg text-[#4A3B32]">
-                      Calendario de Entregas
+                      Agenda de Entregas
                     </h2>
                     <p className="text-xs text-gray-500">
-                      Selecciona un día para consultar sus pedidos.
+                      Consulta y gestiona las órdenes de NOVA.
                     </p>
                   </div>
                 </div>
             
-                <div className="flex items-center gap-2">
+                {/* Selector de Vista (Mes / Día) */}
+                <div className="flex items-center gap-1 bg-[#FAF6EF] p-1 rounded-xl border border-[#E8DCC4]">
                   <button
-                    onClick={() => {
-                      const today = new Date();
-                      setCalendarMonth(new Date(today.getFullYear(), today.getMonth(), 1));
-                      setSelectedCalendarDate(
-                        `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
-                      );
-                    }}
-                    className="px-3 py-2 rounded-lg border border-[#E8DCC4] text-sm font-semibold text-[#4A3B32] hover:bg-[#FAF6EF]"
+                    type="button"
+                    onClick={() => setCalendarView('mes')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${calendarView === 'mes' ? 'bg-[#A56A41] text-white shadow' : 'text-[#4A3B32] hover:bg-[#E8DCC4]'}`}
                   >
-                    Hoy
+                    Mes
                   </button>
-            
                   <button
-                    onClick={() => changeCalendarMonth(-1)}
-                    className="p-2 rounded-lg border border-[#E8DCC4] hover:bg-[#FAF6EF]"
-                    aria-label="Mes anterior"
+                    type="button"
+                    onClick={() => setCalendarView('dia')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${calendarView === 'dia' ? 'bg-[#A56A41] text-white shadow' : 'text-[#4A3B32] hover:bg-[#E8DCC4]'}`}
                   >
-                    <ChevronLeft size={18} />
-                  </button>
-            
-                  <button
-                    onClick={() => changeCalendarMonth(1)}
-                    className="p-2 rounded-lg border border-[#E8DCC4] hover:bg-[#FAF6EF]"
-                    aria-label="Mes siguiente"
-                  >
-                    <ChevronRight size={18} />
+                    Día
                   </button>
                 </div>
               </div>
-            
-              <h3 className="text-center font-bold text-[#4A3B32] text-lg mb-4 capitalize">
-                {calendarMonth.toLocaleDateString('es-DO', {
-                  month: 'long',
-                  year: 'numeric',
-                })}
-              </h3>
-            
-              <div className="grid grid-cols-7 gap-1 sm:gap-2">
-                {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map(day => (
-                  <div
-                    key={day}
-                    className="text-center text-xs font-bold text-gray-500 py-2"
-                  >
-                    {day}
-                  </div>
-                ))}
-            
-                {calendarCells.map((day, index) => {
-                  if (!day) {
-                    return <div key={`empty-${index}`} />;
-                  }
-            
-                  const dateKey =
-                    `${calendarYear}-${String(calendarMonthIndex + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-            
-                  const dayOrders = calendarOrdersByDate[dateKey] || [];
-                  const dayStatuses = [...new Set(dayOrders.map(order => order.estado))];
-                  const isSelected = selectedCalendarDate === dateKey;
-                  const isToday = dateKey ===
-                    `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`;
-            
-                  return (
-                    <button
-                      key={dateKey}
-                     onClick={() => {
-                          console.log('Día seleccionado:', dateKey);
-                          setSelectedCalendarDate(dateKey);
-                        }}                  
-                      className={`min-h-[66px] sm:min-h-[82px] rounded-xl border p-1 sm:p-2 flex flex-col items-center gap-1 transition-colors ${
-                        isSelected
-                          ? 'border-[#A56A41] ring-2 ring-[#A56A41]/30 bg-[#FAF0E4]'
-                          : dayOrders.length
-                            ? 'border-[#E8DCC4] hover:border-[#A56A41] bg-[#FFFCF7]'
-                            : 'border-transparent hover:bg-[#FAF6EF]'
-                      }`}
-                      aria-label={`${day} de ${calendarMonth.toLocaleDateString('es-DO', { month: 'long' })}, ${dayOrders.length} pedidos`}
-                    >
-                      <span className={`text-sm font-bold ${
-                        isToday ? 'bg-[#A56A41] text-white rounded-full w-7 h-7 flex items-center justify-center' : 'text-[#4A3B32]'
-                      }`}>
-                        {day}
-                      </span>
-            
-                      {dayOrders.length > 0 && (
-                        <>
-                          <span className="text-[10px] font-semibold text-gray-600">
-                            {dayOrders.length} {dayOrders.length === 1 ? 'pedido' : 'pedidos'}
-                          </span>
-            
-                          <div className="flex flex-wrap justify-center gap-1">
-                            {dayStatuses.map(status => {
-                              const statusStyle =
-                                STATUS_STYLES[status] || STATUS_STYLES['Por confirmar'];
-            
-                              return (
-                                <span
-                                  key={status}
-                                  title={status}
-                                  className={`w-2.5 h-2.5 rounded-full border ${statusStyle.bg} ${statusStyle.border}`}
-                                />
-                              );
-                            })}
-                          </div>
-                        </>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            
-              <div className="flex flex-wrap gap-x-4 gap-y-2 mt-4 pt-4 border-t border-[#E8DCC4]">
-                {ESTADOS.map(status => {
-                  const statusStyle =
-                    STATUS_STYLES[status] || STATUS_STYLES['Por confirmar'];
-            
-                  return (
-                    <div key={status} className="flex items-center gap-1.5 text-xs text-gray-600">
-                      <span className={`w-3 h-3 rounded-full border ${statusStyle.bg} ${statusStyle.border}`} />
-                      {status}
+
+              {/* CONTENIDO CONDICIONAL SEGÚN LA VISTA SELECCIONADA */}
+              {calendarView === 'mes' ? (
+                <>
+          
+                                  {/* VISTA MENSUAL: Calendario clásico de cuadritos */}
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-bold text-[#4A3B32] text-base capitalize">
+                      {calendarMonth.toLocaleDateString('es-DO', { month: 'long', year: 'numeric' })}
+                    </h3>
+                    <div className="flex items-center gap-1">
+                      <button type="button" onClick={() => {
+                        const today = new Date();
+                        setCalendarMonth(new Date(today.getFullYear(), today.getMonth(), 1));
+                        setSelectedCalendarDate(`${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`);
+                      }} className="px-2.5 py-1 rounded-lg border text-xs font-semibold text-[#4A3B32] hover:bg-[#FAF6EF]">Hoy</button>
+                      <button type="button" onClick={() => changeCalendarMonth(-1)} className="p-1 rounded-lg border hover:bg-[#FAF6EF]"><ChevronLeft size={16} /></button>
+                      <button type="button" onClick={() => changeCalendarMonth(1)} className="p-1 rounded-lg border hover:bg-[#FAF6EF]"><ChevronRight size={16} /></button>
                     </div>
-                  );
-                })}
-              </div>
-            
-              <div className="mt-6 pt-5 border-t border-[#E8DCC4]">
-                <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
-                  
-                  <h3 className="font-bold text-[#4A3B32]">
-                    Entregas del {selectedCalendarDate.split('-').reverse().join('/')}                  
-                  </h3>
-                 <p className="text-xs text-red-600">
-                      Fecha seleccionada: {selectedCalendarDate}
-                    </p>
-                    
-                    <p className="text-xs text-red-600">
-                      Pedidos encontrados: {selectedDayOrders.length}
-                    </p>
-                 
-
-            
-                  <span className="text-xs text-gray-500">
-                    {selectedDayOrders.length} {selectedDayOrders.length === 1 ? 'pedido' : 'pedidos'}
-                  </span>
-                </div>
-            
-                {selectedDayOrders.length === 0 ? (
-                  <div className="text-center py-8 bg-[#FAF6EF] rounded-xl">
-                    <CalendarIcon size={30} className="mx-auto text-[#D6BC80] mb-2" />
-                    <p className="font-semibold text-sm text-[#4A3B32]">
-                      No hay pedidos para este día.
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      Selecciona otra fecha para consultar sus entregas.
-                    </p>
                   </div>
-                ) : (
-                  <div className="space-y-3">
-                    {selectedDayOrders.map(order => {
-                      const statusStyle =
-                        STATUS_STYLES[order.estado] || STATUS_STYLES['Por confirmar'];
             
+                  <div className="grid grid-cols-7 gap-1 sm:gap-2">
+                    {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map(day => (
+                      <div key={day} className="text-center text-xs font-bold text-gray-500 py-1">{day}</div>
+                    ))}
+                
+                    {calendarCells.map((day, index) => {
+                      if (!day) return <div key={`empty-${index}`} />;
+                      const dateKey = `${calendarYear}-${String(calendarMonthIndex + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                      const dayOrders = calendarOrdersByDate[dateKey] || [];
+                      const dayStatuses = [...new Set(dayOrders.map(order => order.estado))];
+                      const isSelected = selectedCalendarDate === dateKey;
+                      const isToday = dateKey === `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`;
+                
                       return (
-                        <button
-                          key={order.idPedido}
-                          onClick={() => {
-                            setActiveTab('orders');
-                            startEditingOrder(order);
-                          }}
-                          className={`w-full text-left p-4 rounded-xl border ${statusStyle.bg} ${statusStyle.border} hover:shadow-md transition-all`}
-                        >
-                          <div className="flex flex-wrap items-start justify-between gap-3">
-                            <div className="min-w-0">
-                              <div className="flex flex-wrap items-center gap-2">
-                                <span className="font-bold font-mono text-sm text-[#4A3B32]">
-                                  {order.idPedido}
-                                </span>
-                                <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded-full border ${statusStyle.text} ${statusStyle.border} bg-white/70`}>
-                                  {order.estado}
-                                </span>
+                        <button type="button" key={dateKey} onClick={() => setSelectedCalendarDate(dateKey)} className={`min-h-[66px] sm:min-h-[82px] rounded-xl border p-1 sm:p-2 flex flex-col items-center gap-1 transition-colors ${isSelected ? 'border-[#A56A41] ring-2 ring-[#A56A41]/30 bg-[#FAF0E4]' : dayOrders.length ? 'border-[#E8DCC4] hover:border-[#A56A41] bg-[#FFFCF7]' : 'border-transparent hover:bg-[#FAF6EF]'}`}>
+                          <span className={`text-xs font-bold ${isToday ? 'bg-[#A56A41] text-white rounded-full w-6 h-6 flex items-center justify-center' : 'text-[#4A3B32]'}`}>{day}</span>
+                          {dayOrders.length > 0 && (
+                            <>
+                              <span className="text-[9px] font-semibold text-gray-600">{dayOrders.length} ped.</span>
+                              <div className="flex flex-wrap justify-center gap-0.5">
+                                {dayStatuses.map(status => {
+                                  const statusStyle = STATUS_STYLES[status] || STATUS_STYLES['Por confirmar'];
+                                  return <span key={status} className={`w-2 h-2 rounded-full border ${statusStyle.bg} ${statusStyle.border}`} />;
+                                })}
                               </div>
-            
-                              <p className="font-bold text-sm text-[#4A3B32] mt-2">
-                                {order.cliente}
-                              </p>
-            
-                              <p className="text-xs text-gray-600 mt-1">
-                                <Clock size={13} className="inline mr-1" />
-                                {formatTime12h(order.horaEntrega)}
-                              </p>
-
-                            </div>
-            
-                            <div className="text-right">
-                              <p className="font-extrabold text-sm text-[#4A3B32]">
-                                RD$ {Number(order.totalPedido || 0).toLocaleString('es-DO')}
-                              </p>
-                              <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#A56A41] mt-2">
-                                Revisar pedido <ChevronRight size={14} />
-                              </span>
-                            </div>
-                          </div>
+                            </>
+                          )}
                         </button>
                       );
                     })}
                   </div>
-                )}
-              </div>
+
+                  {/* Listado inferior en vista mensual */}
+                  <div className="mt-6 pt-4 border-t border-[#E8DCC4]">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-bold text-[#4A3B32] text-sm">Entregas del {selectedCalendarDate.split('-').reverse().join('/')}</h4>
+                      <span className="text-xs text-gray-500 font-semibold">{selectedDayOrders.length} pedidos</span>
+                    </div>
+                    {selectedDayOrders.length === 0 ? (
+                      <p className="text-xs text-center text-gray-400 py-4 bg-[#FAF6EF] rounded-xl">No hay entregas pautadas para esta fecha.</p>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        {selectedDayOrders.map(order => {
+                          const statusStyle = STATUS_STYLES[order.estado] || STATUS_STYLES['Por confirmar'];
+                          return (
+                            <button type="button" key={order.idPedido} onClick={() => { setActiveTab('orders'); startEditingOrder(order); }} className={`text-left p-3 rounded-xl border text-xs ${statusStyle.bg} ${statusStyle.border} flex justify-between items-center hover:shadow-sm`}>
+                              <div>
+                                <span className="font-bold font-mono">{order.idPedido}</span> — <span className="font-semibold">{order.cliente}</span>
+                                <p className="text-[11px] text-gray-500 mt-0.5"><Clock size={11} className="inline mr-1" />{formatTime12h(order.horaEntrega)}</p>
+                              </div>
+                              <span className="font-extrabold text-[#4A3B32]">RD$ {Number(order.totalPedido || 0).toLocaleString('es-DO')}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </>
+
+                              ) : (
+                /* VISTA DIARIA: Muestra el día grande ocupando todo el espacio superior */
+                <div className="bg-[#FAF6EF] p-4 rounded-xl border border-[#E8DCC4]">
+                  <div className="flex items-center justify-between border-b border-[#E8DCC4] pb-3 mb-4">
+                    <div>
+                      <span className="text-[10px] font-bold text-[#A56A41] uppercase tracking-wider">Día Seleccionado</span>
+                      <h3 className="font-extrabold text-xl text-[#4A3B32] capitalize">
+                        {new Date(selectedCalendarDate + 'T00:00:00').toLocaleDateString('es-DO', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                      </h3>
+                    </div>
+                    {/* Controles rápidos para saltar de día en día */}
+                    <div className="flex gap-1">
+                      <button type="button" onClick={() => {
+                        const d = new Date(selectedCalendarDate + 'T00:00:00');
+                        d.setDate(d.getDate() - 1);
+                        setSelectedCalendarDate(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`);
+                      }} className="p-2 bg-white rounded-lg border hover:bg-gray-100 text-[#4A3B32]"><ChevronLeft size={16} /></button>
+                      <button type="button" onClick={() => {
+                        const d = new Date(selectedCalendarDate + 'T00:00:00');
+                        d.setDate(d.getDate() + 1);
+                        setSelectedCalendarDate(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`);
+                      }} className="p-2 bg-white rounded-lg border hover:bg-gray-100 text-[#4A3B32]"><ChevronRight size={16} /></button>
+                    </div>
+                  </div>
+
+                  {selectedDayOrders.length === 0 ? (
+                    <div className="text-center py-10 bg-white rounded-xl border border-dashed border-gray-300">
+                      <CalendarIcon size={32} className="mx-auto text-[#D6BC80] mb-2" />
+                      <p className="font-bold text-sm text-[#4A3B32]">Libre de entregas</p>
+                      <p className="text-xs text-gray-500 mt-1">No tienes pedidos agendados para este día.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <p className="text-xs font-bold text-[#A56A41] mb-1">Lista de Entregas del Día ({selectedDayOrders.length}):</p>
+                      {selectedDayOrders.map(order => {
+                        const statusStyle = STATUS_STYLES[order.estado] || STATUS_STYLES['Por confirmar'];
+                        return (
+                          <div 
+                            key={order.idPedido} 
+                            className={`p-4 rounded-xl border bg-white flex flex-wrap justify-between items-center gap-3 transition-all border-l-4 ${statusStyle.border}`}
+                          >
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2">
+                                <span className="font-mono font-bold text-sm text-[#4A3B32]">{order.idPedido}</span>
+                                <span className={`text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full border ${statusStyle.text} ${statusStyle.bg} ${statusStyle.border}`}>
+                                  {order.estado}
+                                </span>
+                              </div>
+                              <h4 className="font-bold text-base text-[#4A3B32]">{order.cliente}</h4>
+                              <p className="text-xs text-gray-600 flex items-center gap-1 font-semibold">
+                                <Clock size={13} className="text-[#A56A41]" /> Hora de entrega: {formatTime12h(order.horaEntrega)}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-4">
+                              <div className="text-right">
+                                <span className="text-[10px] text-gray-400 font-bold block">TOTAL PEDIDO</span>
+                                <span className="font-black text-base text-[#4A3B32]">RD$ {Number(order.totalPedido || 0).toLocaleString('es-DO')}</span>
+                              </div>
+                              <button 
+                                type="button"
+                                onClick={() => { setActiveTab('orders'); startEditingOrder(order); }}
+                                className="px-3 py-2 bg-[#A56A41] text-white rounded-lg text-xs font-bold hover:bg-[#8B5633] transition-colors"
+                              >
+                                Gestionar
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
 
-
-
-
-            
 
             {/* SECCIÓN CATÁLOGO + CARRITO LATERAL */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
