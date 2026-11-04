@@ -919,9 +919,14 @@ const normalizeTime = (value) => {
             
               <div className="mt-6 pt-5 border-t border-[#E8DCC4]">
                 <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+                  
                   <h3 className="font-bold text-[#4A3B32]">
                     Entregas del {selectedCalendarDate.split('-').reverse().join('/')}
+                    <span className="ml-2 text-xs text-red-600">
+                      (Prueba: {selectedCalendarDate})
+                    </span>
                   </h3>
+
             
                   <span className="text-xs text-gray-500">
                     {selectedDayOrders.length} {selectedDayOrders.length === 1 ? 'pedido' : 'pedidos'}
