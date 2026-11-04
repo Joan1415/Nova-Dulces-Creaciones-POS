@@ -305,6 +305,8 @@ const normalizeTime = (value) => {
 
       const data = response.data;
 
+      console.log("CATÁLOGO RECIBIDO DE SHEETS:", data.catalogo);
+
       if (!data || !Array.isArray(data.pedidos)) {
         throw new Error("La respuesta no contiene data.pedidos");
       }
