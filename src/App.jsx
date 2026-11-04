@@ -942,6 +942,10 @@ const normalizeTime = (value) => {
                     Entregas del {selectedCalendarDate.split('-').reverse().join('/')}                  
                   </h3>
                   <p className="text-xs text-red-600">
+                    Fecha seleccionada: {selectedCalendarDate} |
+                    Pedidos encontrados: {selectedDayOrders.length}
+                  </p>
+                  <p className="text-xs text-red-600">
                       Fecha de prueba: {selectedCalendarDate}
                   </p>
 
