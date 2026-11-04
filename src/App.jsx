@@ -207,7 +207,7 @@ export default function App() {
         .includes(String(value).trim().toLowerCase());
     };
 
-          const formatDate = (value) => {
+             const formatDate = (value) => {
       if (!value) return "";
       const text = String(value).trim();
       const match = text.match(/^(\d{4})-(\d{2})-(\d{2})/);
@@ -215,6 +215,7 @@ export default function App() {
       if (/^\d{2}\/\d{2}\/\d{4}$/.test(text)) return text;
       return text;
     };
+
 
     const normalizeTime = (value) => {
       if (!value) return "";
@@ -443,7 +444,7 @@ export default function App() {
   };
 
           // ✅ PEGA ESTE NUEVO BLOQUE OPTIMIZADO
-            const calendarOrdersByDate = useMemo(() => {
+                const calendarOrdersByDate = useMemo(() => {
                 return orders.reduce((groups, order) => {
                   if (!order.fechaEntrega) return groups;
                   const value = String(order.fechaEntrega).trim();
@@ -466,6 +467,7 @@ export default function App() {
                   return groups;
                 }, {});
               }, [orders]);
+
             
               const selectedDayOrders = useMemo(() => {
                 return (calendarOrdersByDate[selectedCalendarDate] || [])
