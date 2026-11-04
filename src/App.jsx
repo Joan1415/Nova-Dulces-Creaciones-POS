@@ -167,23 +167,51 @@ useEffect(() => {
   };
 
   // Convierte una hora de Sheets a HH:mm.
-  const normalizeTime = (value) => {
-    if (!value) return "";
+  
+const formatDate = (value) => {
+  if (!value) return "";
 
-    const text = String(value).trim();
+  // Evita que una fecha vacía se convierta en una fecha ficticia.
+  const text = String(value).trim();
+  if (!text) return "";
 
-    // Admite ISO: 1899-12-30T14:00:00
-    const isoTime = text.match(/T(\d{2}):(\d{2})/);
-    if (isoTime) return `${isoTime[1]}:${isoTime[2]}`;
+  // Extrae YYYY-MM-DD de fechas ISO sin problemas de zona horaria.
+  const match = text.match(/^(\d{4})-(\d{2})-(\d{2})/);
 
-    // Admite HH:mm o HH:mm:ss.
-    const simpleTime = text.match(/^(\d{1,2}):(\d{2})/);
-    if (simpleTime) {
-      return `${simpleTime[1].padStart(2, "0")}:${simpleTime[2]}`;
-    }
+  if (match) {
+    return `${match[3]}/${match[2]}/${match[1]}`;
+  }
 
-    return text;
-  };
+  // Admite fechas ya formateadas como DD/MM/YYYY.
+  const localMatch = text.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+
+  if (localMatch) return text;
+
+  // No altera silenciosamente valores que no reconoce.
+  return text;
+};
+
+const normalizeTime = (value) => {
+  if (!value) return "";
+
+  const text = String(value).trim();
+
+  // Ejemplo: 1899-12-30T14:00:00 -> 14:00
+  const isoMatch = text.match(/T(\d{2}):(\d{2})/);
+  if (isoMatch) {
+    return `${isoMatch[1]}:${isoMatch[2]}`;
+  }
+
+  // Ejemplo: 14:00:00 -> 14:00
+  const timeMatch = text.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
+
+  if (timeMatch) {
+    return `${timeMatch[1].padStart(2, "0")}:${timeMatch[2]}`;
+  }
+
+  return text;
+};
+
 
   const normalizeDetail = (d) => ({
     idPedido: get(d, "ID Pedido"),
