@@ -485,15 +485,7 @@ const normalizeTime = (value) => {
   }, {});
 
 
-    console.log('Fecha seleccionada:', selectedCalendarDate);
-    console.log('Fechas disponibles en pedidos:', Object.keys(calendarOrdersByDate));
-    console.log(
-      'Fechas originales de las órdenes:',
-      orders.map(order => ({
-        id: order.idPedido,
-        fechaEntrega: order.fechaEntrega
-      }))
-    );
+    
   
   const selectedDayOrders = (calendarOrdersByDate[selectedCalendarDate] || [])
     .slice()
@@ -535,7 +527,7 @@ const normalizeTime = (value) => {
         const date = String(day).padStart(2, '0');
         const newDate = `${year}-${month}-${date}`;
       
-        console.log('Fecha seleccionada:', newDate);
+        
         setSelectedCalendarDate(newDate);
       };
 
@@ -941,10 +933,7 @@ const normalizeTime = (value) => {
                   <h3 className="font-bold text-[#4A3B32]">
                     Entregas del {selectedCalendarDate.split('-').reverse().join('/')}                  
                   </h3>
-                  <p className="text-xs text-red-600">
-                    Fecha seleccionada: {selectedCalendarDate} |
-                    Pedidos encontrados: {selectedDayOrders.length}
-                  </p>
+                 
                   <p className="text-xs text-red-600">
                       Fecha de prueba: {selectedCalendarDate}
                   </p>
