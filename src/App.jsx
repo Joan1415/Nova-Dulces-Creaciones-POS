@@ -79,7 +79,8 @@ export default function App() {
     return saved ? JSON.parse(saved) : [];
   });
   const [apiUrl, setApiUrl] = useState(() => {
-    return localStorage.getItem('nova_api_url') || '';
+  return localStorage.getItem('nova_api_url') || 'https://script.google.com/macros/s/AKfycbwTBYKfD9ne5mfxuMUxVnouMRJbrkn9SEAC2VVVniPFcmXBmnxAyt-QnokkKvcdemoF/exec';
+});
   });
 
   // Filtros POS
