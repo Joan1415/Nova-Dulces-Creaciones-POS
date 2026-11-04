@@ -358,22 +358,23 @@ const normalizeTime = (value) => {
       // También actualiza si Google Sheets devuelve cero pedidos.
       setOrders(realOrders);
 
-            console.info("Pedidos sincronizados:", realOrders.length);
-      console.info("Detalles recibidos:", rawDetails.length);
-          } catch (error) {
-            if (error.name !== "AbortError") {
-              console.error("Error sincronizando pedidos:", error);
-            }
-          }
-        };
-      
-        // Ejecución correcta y segura de la carga al montar o cambiar el apiUrl
-        loadOrders();
-      
-        return () => {
-          controller.abort();
-        };
-      }, [apiUrl]);
+                  console.info("Pedidos sincronizados:", realOrders.length);
+                  console.info("Detalles recibidos:", rawDetails.length);
+                } catch (error) {
+                  if (error.name !== "AbortError") {
+                    console.error("Error sincronizando pedidos:", error);
+                  }
+                }
+              };
+            
+              // Se ejecuta la función de carga de manera segura dentro del ciclo de vida del Hook
+              loadOrders();
+            
+              return () => {
+                controller.abort();
+              };
+            }, [apiUrl]);
+
 
 
   
