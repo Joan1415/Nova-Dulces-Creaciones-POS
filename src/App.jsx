@@ -515,15 +515,19 @@ const normalizeTime = (value) => {
       );
     };
     
-    const selectCalendarDay = (day) => {
-      if (!day) return;
     
-      const year = calendarYear;
-      const month = String(calendarMonthIndex + 1).padStart(2, '0');
-      const date = String(day).padStart(2, '0');
-    
-      setSelectedCalendarDate(`${year}-${month}-${date}`);
-    };
+      const selectCalendarDay = (day) => {
+        if (!day) return;
+      
+        const year = calendarMonth.getFullYear();
+        const month = String(calendarMonth.getMonth() + 1).padStart(2, '0');
+        const date = String(day).padStart(2, '0');
+        const newDate = `${year}-${month}-${date}`;
+      
+        console.log('Fecha seleccionada:', newDate);
+        setSelectedCalendarDate(newDate);
+      };
+
 
   
 
