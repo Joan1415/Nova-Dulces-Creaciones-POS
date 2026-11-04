@@ -125,25 +125,29 @@ export default function App() {
   useEffect(() => { localStorage.setItem('nova_orders', JSON.stringify(orders)); }, [orders]);
   useEffect(() => { localStorage.setItem('nova_expenses', JSON.stringify(expenses)); }, [expenses]);
   useEffect(() => { localStorage.setItem('nova_api_url', apiUrl); }, [apiUrl]);
-  // Sincronizar pedidos y datos desde Google Sheets al iniciar la app
+  // Sincronizar pedidos y datos desde Google Sheets al iniciar la app de forma segura
   useEffect(() => {
-    if (apiUrl) {
-      fetch(apiUrl)
-        .then(res => res.json())
-        .then(response => {
-          // Tu script responde con { success: true, data: { pedidos: [...], ... } }
+    if (!apiUrl) return;
+    
+    fetch(apiUrl)
+      .then(res => res.json())
+      .then(response => {
+        try {
           if (response && response.success && response.data) {
             if (Array.isArray(response.data.pedidos)) {
               setOrders(response.data.pedidos);
             }
-            if (Array.isArray(response.data.catalogo) && response.data.catalogo.length > 0) {
-              // Opcional: si deseas actualizar también el catálogo desde Google Sheets
-              // setProducts(response.data.catalogo);
-            }
+          } else if (Array.isArray(response)) {
+            // Por si la respuesta viene directo como array
+            setOrders(response);
           }
-        })
-        .catch(err => console.error('Error cargando datos de la nube:', err));
-    }
+        } catch (innerErr) {
+          console.error('Error procesando los datos de la nube:', innerErr);
+        }
+      })
+      .catch(err => {
+        console.error('Error de red al conectar con Google Sheets:', err);
+      });
   }, [apiUrl]);
 
   // Carrito helpers
