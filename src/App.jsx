@@ -58,13 +58,24 @@ const STATUS_STYLES = {
 // Conversor de hora a formato 12 horas AM/PM
 const formatTime12h = (time24) => {
   if (!time24) return '';
-  const [hours, minutes] = time24.split(':');
-  if (hours === undefined || minutes === undefined) return time24;
-  let h = parseInt(hours, 10);
-  const ampm = h >= 12 ? 'PM' : 'AM';
-  h = h % 12 || 12;
-  return `${String(h).padStart(2, '0')}:${minutes} ${ampm}`;
+  
+  // Limpiar espacios y asegurar texto
+  const str = String(time24).trim();
+  
+  // Extraer horas y minutos ignorando segundos o la 'T' de fechas ISO
+  const match = str.match(/(?:T|^)(\d{1,2}):(\d{2})/);
+  if (!match) return time24;
+  
+  let hours = parseInt(match[1], 10);
+  const minutes = match[2];
+  
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12;
+  hours = hours ? hours : 12; // El número 0 debe ser 12
+  
+  return `${String(hours).padStart(2, '0')}:${minutes} ${ampm}`;
 };
+
 
 const formatDisplayDate = (value) => {
   if (!value) return "";
@@ -1089,6 +1100,7 @@ const normalizeTime = (value) => {
                                 <Clock size={13} className="inline mr-1" />
                                 {formatTime12h(order.horaEntrega)}
                               </p>
+
                             </div>
             
                             <div className="text-right">
