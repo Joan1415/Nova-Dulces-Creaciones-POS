@@ -347,8 +347,6 @@ export default function App() {
     };
   }, [apiUrl]);
 
-
-
   
   // Carrito helpers
   const addToCart = (product) => {
