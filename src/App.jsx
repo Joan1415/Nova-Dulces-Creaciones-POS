@@ -63,6 +63,27 @@ const formatTime12h = (time24) => {
   return `${String(h).padStart(2, '0')}:${minutes} ${ampm}`;
 };
 
+const formatDisplayDate = (value) => {
+  if (!value) return "";
+
+  const text = String(value).trim();
+
+  // Si ya está en formato DD/MM/YYYY, lo dejamos igual.
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(text)) {
+    return text;
+  }
+
+  // Si viene en formato YYYY-MM-DD, lo convertimos.
+  const match = text.match(/^(\d{4})-(\d{2})-(\d{2})/);
+
+  if (match) {
+    return `${match[3]}/${match[2]}/${match[1]}`;
+  }
+
+  return text;
+};
+
+
 export default function App() {
   const [activeTab, setActiveTab] = useState('pos');
   const [products, setProducts] = useState(() => {
@@ -231,7 +252,7 @@ const normalizeTime = (value) => {
     return {
       idPedido,
       fechaRegistro: get(o, "Fecha Registro"),
-      fechaEntrega: get(o, "Fecha Entrega"),
+      fechaEntrega: formatDate(get(o, "Fecha Entrega")),
       horaEntrega: normalizeTime(get(o, "Hora Entrega")),
       cliente: get(o, "Cliente"),
       telefono: get(o, "Teléfono"),
@@ -709,7 +730,7 @@ const normalizeTime = (value) => {
                           <p className="font-bold text-sm text-[#4A3B32] truncate mt-1">{ord.cliente}</p>
                           <div className="flex items-center gap-1 text-xs text-gray-700 mt-1 font-semibold">
                             <Clock size={14} className="text-[#A56A41]" />
-                            <span>{ord.fechaEntrega} — {formatTime12h(ord.horaEntrega)}</span>
+                            <span>{formatDisplayDate(ord.fechaEntrega)} — {formatTime12h(ord.horaEntrega)}</span>
                           </div>
 
                           {ord.llevaExtras && (
