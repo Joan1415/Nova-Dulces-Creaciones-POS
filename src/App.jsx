@@ -483,6 +483,17 @@ const normalizeTime = (value) => {
   
     return groups;
   }, {});
+
+
+    console.log('Fecha seleccionada:', selectedCalendarDate);
+    console.log('Fechas disponibles en pedidos:', Object.keys(calendarOrdersByDate));
+    console.log(
+      'Fechas originales de las órdenes:',
+      orders.map(order => ({
+        id: order.idPedido,
+        fechaEntrega: order.fechaEntrega
+      }))
+    );
   
   const selectedDayOrders = (calendarOrdersByDate[selectedCalendarDate] || [])
     .slice()
