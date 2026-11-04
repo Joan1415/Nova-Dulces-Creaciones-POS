@@ -41,13 +41,13 @@ const INITIAL_PRODUCTS = [
   { id: 'M003', nombre: 'Postre de Molde', categoria: 'Porciones de postres', precio: 350, costo: 140, activo: true }
 ];
 
-const CATEGORIAS = ['Todos', 'Enteros', 'Bizcochos Personalizados', 'Bocadillos', 'Porciones de postres'];
-const ESTADOS = ['Por confirmar', 'Por pagar', 'Confirmada', 'Entregada', 'Cancelada'];
-const METODOS_PAGO = ['Efectivo', 'Transferencia', 'Tarjeta'];
-const CATEGORIAS_GASTO = ['Ingredientes', 'Empaques', 'Servicios', 'Utensilios', 'Delivery/Transporte', 'Otros'];
+cCATEGORIAS = ['Todos', 'Enteros', 'Bizcochos Personalizados', 'Bocadillos', 'Porciones de postres'];
+cESTADOS = ['Por confirmar', 'Por pagar', 'Confirmada', 'Entregada', 'Cancelada'];
+cMETODOS_PAGO = ['Efectivo', 'Transferencia', 'Tarjeta'];
+cCATEGORIAS_GASTO = ['Ingredientes', 'Empaques', 'Servicios', 'Utensilios', 'Delivery/Transporte', 'Otros'];
 
 // Mapeo oficial de colores por estado
-const STATUS_STYLES = {
+cSTATUS_STYLES = {
   'Por confirmar': { bg: 'bg-[#FFF2CC]', text: 'text-amber-900', border: 'border-amber-300', hex: '#FFF2CC' },
   'Por pagar': { bg: 'bg-[#FCE5CD]', text: 'text-orange-900', border: 'border-orange-300', hex: '#FCE5CD' },
   'Confirmada': { bg: 'bg-[#C9DAF8]', text: 'text-blue-900', border: 'border-blue-300', hex: '#C9DAF8' },
@@ -56,20 +56,20 @@ const STATUS_STYLES = {
 };
 
 // Conversor de hora a formato 12 horas AM/PM
-const formatTime12h = (time24) => {
+cformatTime12h = (time24) => {
   if (!time24) return '';
   
   // Limpiar espacios y asegurar texto
-  const str = String(time24).trim();
+  cstr = String(time24).trim();
   
   // Extraer horas y minutos ignorando segundos o la 'T' de fechas ISO
-  const match = str.match(/(?:T|^)(\d{1,2}):(\d{2})/);
+  cmatch = str.match(/(?:T|^)(\d{1,2}):(\d{2})/);
   if (!match) return time24;
   
   let hours = parseInt(match[1], 10);
-  const minutes = match[2];
+  cminutes = match[2];
   
-  const ampm = hours >= 12 ? 'PM' : 'AM';
+  campm = hours >= 12 ? 'PM' : 'AM';
   hours = hours % 12;
   hours = hours ? hours : 12; // El número 0 debe ser 12
   
@@ -77,10 +77,10 @@ const formatTime12h = (time24) => {
 };
 
 
-const formatDisplayDate = (value) => {
+cformatDisplayDate = (value) => {
   if (!value) return "";
 
-  const text = String(value).trim();
+  ctext = String(value).trim();
 
   // Si ya está en formato DD/MM/YYYY, lo dejamos igual.
   if (/^\d{2}\/\d{2}\/\d{4}$/.test(text)) {
@@ -88,7 +88,7 @@ const formatDisplayDate = (value) => {
   }
 
   // Si viene en formato YYYY-MM-DD, lo convertimos.
-  const match = text.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  cmatch = text.match(/^(\d{4})-(\d{2})-(\d{2})/);
 
   if (match) {
     return `${match[3]}/${match[2]}/${match[1]}`;
@@ -99,8 +99,8 @@ const formatDisplayDate = (value) => {
 
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('pos');
- onst [calendarMonth, setCalendarMonth] = useState(() => new Date());
+  c[activeTab, setActiveTab] = useState('pos');
+ const [calendarMonth, setCalendarMonth] = useState(() => new Date());
   const [selectedCalendarDate, setSelectedCalendarDate] = useState(() => {
     const today = new Date();
     return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
