@@ -864,10 +864,7 @@ const normalizeTime = (value) => {
                   return (
                     <button
                       key={dateKey}
-                     onClick={() => {
-                          const newDate = dateKey;
-                          console.log('Cambiando fecha a:', newDate);
-                          setSelectedCalendarDate(newDate);
+                     onClick={() => setSelectedCalendarDate(dateKey)}
                         }}
                       className={`min-h-[66px] sm:min-h-[82px] rounded-xl border p-1 sm:p-2 flex flex-col items-center gap-1 transition-colors ${
                         isSelected
@@ -930,9 +927,7 @@ const normalizeTime = (value) => {
                   
                   <h3 className="font-bold text-[#4A3B32]">
                     Entregas del {selectedCalendarDate.split('-').reverse().join('/')}
-                    <span className="ml-2 text-xs text-red-600">
-                      (Prueba: {selectedCalendarDate})
-                    </span>
+                    
                   </h3>
 
             
