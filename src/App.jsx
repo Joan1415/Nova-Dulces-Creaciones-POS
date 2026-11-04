@@ -126,52 +126,177 @@ export default function App() {
   useEffect(() => { localStorage.setItem('nova_expenses', JSON.stringify(expenses)); }, [expenses]);
   useEffect(() => { localStorage.setItem('nova_api_url', apiUrl); }, [apiUrl]);
 
-  // Sincronizar pedidos reales desde Google Sheets
-  useEffect(() => {
-    if (!apiUrl) return;
-    
-    fetch(apiUrl)
-      .then(res => res.json())
-      .then(response => {
-        try {
-          const rawData = response?.data || response;
-          
-          // Verificamos si existen pedidos reales en la respuesta del Apps Script
-          if (rawData && rawData.pedidos && Array.isArray(rawData.pedidos)) {
-            const realOrders = rawData.pedidos.map(o => ({
-              idPedido: o.idPedido || o.ID || o[0] || 'PED-0000',
-              fechaRegistro: o.fechaRegistro || o[1] || '',
-              fechaEntrega: o.fechaEntrega || o[2] || '',
-              horaEntrega: o.horaEntrega || o[3] || '',
-              cliente: o.cliente || o.Cliente || o[4] || '',
-              telefono: o.telefono || o.Telefono || o[5] || '',
-              tipoEntrega: o.tipoEntrega || o[6] || 'Retiro en Tienda',
-              costoDelivery: Number(o.costoDelivery || o[7]) || 0,
-              llevaExtras: Boolean(o.llevaExtras ?? o[8]),
-              detallesExtras: o.detallesExtras || o[9] || '',
-              costoExtras: Number(o.costoExtras || o[10]) || 0,
-              direccionNotas: o.direccionNotas || o[11] || '',
-              metodoPago: o.metodoPago || o[12] || 'Efectivo',
-              estado: o.estado || o.Estado || o[13] || 'Por confirmar',
-              totalPedido: Number(o.totalPedido || o.Total || o[14]) || 0,
-              costoProduccion: Number(o.costoProduccion || o[15]) || 0,
-              gananciaNeta: Number(o.gananciaNeta || o[16]) || 0,
-              detalles: Array.isArray(o.detalles) ? o.detalles : []
-            }));
-            
-            // Actualizamos el estado solo si hay pedidos reales
-            if (realOrders.length > 0) {
-              setOrders(realOrders);
-            }
-          }
-        } catch (innerErr) {
-          console.error('Error al leer los pedidos de Google Sheets:', innerErr);
-        }
-      })
-      .catch(err => {
-        console.error('Error de red al conectar con Google Sheets:', err);
+  
+useEffect(() => {
+  if (!apiUrl) return;
+
+  const controller = new AbortController();
+
+  // Busca el nombre exacto de la columna.
+  const get = (obj, ...keys) => {
+    for (const key of keys) {
+      if (
+        obj &&
+        Object.prototype.hasOwnProperty.call(obj, key) &&
+        obj[key] !== null &&
+        obj[key] !== undefined
+      ) {
+        return obj[key];
+      }
+    }
+
+    return "";
+  };
+
+  const toNumber = (value) => {
+    if (value === "" || value == null) return 0;
+    if (typeof value === "number") {
+      return Number.isFinite(value) ? value : 0;
+    }
+
+    const parsed = Number(String(value).trim().replace(/,/g, ""));
+    return Number.isFinite(parsed) ? parsed : 0;
+  };
+
+  const toBoolean = (value) => {
+    if (typeof value === "boolean") return value;
+    if (typeof value === "number") return value !== 0;
+
+    return ["true", "1", "sí", "si", "yes"]
+      .includes(String(value).trim().toLowerCase());
+  };
+
+  // Convierte una hora de Sheets a HH:mm.
+  const normalizeTime = (value) => {
+    if (!value) return "";
+
+    const text = String(value).trim();
+
+    // Admite ISO: 1899-12-30T14:00:00
+    const isoTime = text.match(/T(\d{2}):(\d{2})/);
+    if (isoTime) return `${isoTime[1]}:${isoTime[2]}`;
+
+    // Admite HH:mm o HH:mm:ss.
+    const simpleTime = text.match(/^(\d{1,2}):(\d{2})/);
+    if (simpleTime) {
+      return `${simpleTime[1].padStart(2, "0")}:${simpleTime[2]}`;
+    }
+
+    return text;
+  };
+
+  const normalizeDetail = (d) => ({
+    idPedido: get(d, "ID Pedido"),
+    idDetalle: get(d, "ID Detalle"),
+    idProducto: get(d, "ID Producto"),
+    producto: get(d, "Producto"),
+    categoria: get(d, "Categoría"),
+    cantidad: toNumber(get(d, "Cantidad")),
+    precioUnitario: toNumber(get(d, "Precio Unitario (DOP)")),
+    subtotal: toNumber(get(d, "Subtotal (DOP)")),
+    costoProduccion: toNumber(get(d, "Costo Producción (DOP)")),
+  });
+
+  const normalizeOrder = (o, detailsByOrder) => {
+    const idPedido = get(o, "ID Pedido");
+
+    return {
+      idPedido,
+      fechaRegistro: get(o, "Fecha Registro"),
+      fechaEntrega: get(o, "Fecha Entrega"),
+      horaEntrega: normalizeTime(get(o, "Hora Entrega")),
+      cliente: get(o, "Cliente"),
+      telefono: get(o, "Teléfono"),
+      tipoEntrega: get(o, "Tipo Entrega"),
+      costoDelivery: toNumber(get(o, "Costo Delivery (DOP)")),
+
+      // Estas columnas no aparecen en la respuesta actual.
+      llevaExtras: toBoolean(get(o, "Lleva Extras")),
+      detallesExtras: get(o, "Detalles Extras"),
+      costoExtras: toNumber(get(o, "Costo Extras (DOP)")),
+
+      direccionNotas: get(o, "Dirección / Notas"),
+      metodoPago: get(o, "Método de Pago"),
+      estado: get(o, "Estado"),
+      totalPedido: toNumber(get(o, "Total Pedido (DOP)")),
+      costoProduccion: toNumber(get(o, "Costo Producción (DOP)")),
+      gananciaNeta: toNumber(get(o, "Ganancia Neta (DOP)")),
+
+      // Los detalles vienen en otra lista del JSON.
+      detalles: detailsByOrder[String(idPedido)] || [],
+    };
+  };
+
+  const loadOrders = async () => {
+    try {
+      const res = await fetch(apiUrl, {
+        method: "GET",
+        signal: controller.signal,
       });
-  }, [apiUrl]);
+
+      if (!res.ok) {
+        throw new Error(`Error HTTP ${res.status}`);
+      }
+
+      const response = await res.json();
+
+      if (response?.success !== true) {
+        throw new Error(
+          response?.message || "Respuesta inválida de Apps Script"
+        );
+      }
+
+      const data = response.data;
+
+      if (!data || !Array.isArray(data.pedidos)) {
+        throw new Error("La respuesta no contiene data.pedidos");
+      }
+
+      const rawDetails = Array.isArray(data.detalles)
+        ? data.detalles
+        : [];
+
+      // Agrupa los productos por el ID del pedido.
+      const detailsByOrder = Object.create(null);
+
+      rawDetails.forEach((detail) => {
+        if (!detail || typeof detail !== "object") return;
+
+        const id = get(detail, "ID Pedido");
+        if (id === "") return;
+
+        const key = String(id);
+
+        if (!detailsByOrder[key]) {
+          detailsByOrder[key] = [];
+        }
+
+        detailsByOrder[key].push(normalizeDetail(detail));
+      });
+
+      const realOrders = data.pedidos
+        .filter((order) =>
+          order && typeof order === "object" && !Array.isArray(order)
+        )
+        .map((order) => normalizeOrder(order, detailsByOrder));
+
+      // También actualiza si Google Sheets devuelve cero pedidos.
+      setOrders(realOrders);
+
+      console.info("Pedidos sincronizados:", realOrders.length);
+      console.info("Detalles recibidos:", rawDetails.length);
+    } catch (error) {
+      if (error.name !== "AbortError") {
+        console.error("Error sincronizando pedidos:", error);
+      }
+    }
+  };
+
+  loadOrders();
+
+  return () => controller.abort();
+}, [apiUrl]);
+
   
   // Carrito helpers
   const addToCart = (product) => {
