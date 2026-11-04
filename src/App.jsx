@@ -358,22 +358,24 @@ const normalizeTime = (value) => {
       // También actualiza si Google Sheets devuelve cero pedidos.
       setOrders(realOrders);
 
-                  console.info("Pedidos sincronizados:", realOrders.length);
-                  console.info("Detalles recibidos:", rawDetails.length);
-                } catch (error) {
-                  if (error.name !== "AbortError") {
-                    console.error("Error sincronizando pedidos:", error);
-                  }
-                }
-              };
-            
-              // Se ejecuta la función de carga de manera segura dentro del ciclo de vida del Hook
-              loadOrders();
-            
-              return () => {
-                controller.abort();
-              };
-            }, [apiUrl]);
+           console.info("Pedidos sincronizados:", realOrders.length);
+          console.info("Detalles recibidos:", rawDetails.length);
+            } catch (error) {
+              if (error.name !== "AbortError") {
+                console.error("Error sincronizando pedidos:", error);
+              }
+            }
+          };
+        
+          // 1. Ejecutar la función de carga inicial
+          loadOrders();
+        
+          // 2. Retornar la función de limpieza correctamente estructurada
+          return () => {
+            controller.abort();
+          };
+        }, [apiUrl]); // Ejecutar ÚNICAMENTE cuando cambie la URL base
+
 
 
 
@@ -502,17 +504,29 @@ const normalizeTime = (value) => {
           }, {});
         }, [orders]);
       
-        const selectedDayOrders = useMemo(() => {
-          return (calendarOrdersByDate[selectedCalendarDate] || [])
-            .slice()
-            .sort((a, b) => {
-              const getMinutes = (timeValue) => {
-                const match = String(timeValue || '').match(/T?(\d{1,2}):(\d{2})/);
-                return match ? Number(match[1]) * 60 + Number(match[2]) : 0;
-              };
-              return getMinutes(a.horaEntrega) - getMinutes(b.horaEntrega);
-            });
-        }, [calendarOrdersByDate, selectedCalendarDate]);
+          const selectedDayOrders = (calendarOrdersByDate[selectedCalendarDate] || [])
+              .slice()
+              .sort((a, b) => {
+                const getMinutes = (timeValue) => {
+                  if (!timeValue) return 0;
+                  const strTime = String(timeValue).trim();
+                  const match = strTime.match(/T?(\d{1,2}):(\d{2})/);
+                  if (match) {
+                    return Number(match[1]) * 60 + Number(match[2]);
+                  }
+                  // Si no hace match pero tiene formato simple "HH:MM"
+                  const parts = strTime.split(':');
+                  if (parts.length >= 2) {
+                    const h = Number(parts[0]);
+                    const m = Number(parts[1]);
+                    if (!isNaN(h) && !isNaN(m)) return h * 60 + m;
+                  }
+                  return 0;
+                };
+          
+                return getMinutes(a.horaEntrega) - getMinutes(b.horaEntrega);
+              });
+
       
 
   
