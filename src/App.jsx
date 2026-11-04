@@ -865,9 +865,10 @@ const normalizeTime = (value) => {
                     <button
                       key={dateKey}
                      onClick={() => {
-                        alert(`Día pulsado: ${dateKey}`);
-                        setSelectedCalendarDate(dateKey);
-                      }}
+                          const newDate = dateKey;
+                          console.log('Cambiando fecha a:', newDate);
+                          setSelectedCalendarDate(newDate);
+                        }}
                       className={`min-h-[66px] sm:min-h-[82px] rounded-xl border p-1 sm:p-2 flex flex-col items-center gap-1 transition-colors ${
                         isSelected
                           ? 'border-[#A56A41] ring-2 ring-[#A56A41]/30 bg-[#FAF0E4]'
