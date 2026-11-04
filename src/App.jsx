@@ -928,9 +928,11 @@ const normalizeTime = (value) => {
                 <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
                   
                   <h3 className="font-bold text-[#4A3B32]">
-                    Entregas del {selectedCalendarDate.split('-').reverse().join('/')}
-                    
+                    Entregas del {selectedCalendarDate.split('-').reverse().join('/')}                  
                   </h3>
+                  <p className="text-xs text-red-600">
+                      Fecha de prueba: {selectedCalendarDate}
+                  </p>
 
             
                   <span className="text-xs text-gray-500">
