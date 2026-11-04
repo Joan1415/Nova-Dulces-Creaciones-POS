@@ -474,25 +474,29 @@ const normalizeTime = (value) => {
     setEditingOrder(JSON.parse(JSON.stringify(order)));
   };
 
-      const getOrderCalendarDate = (dateValue) => {
-    if (!dateValue) return '';
+        const getOrderCalendarDate = (dateValue) => {
+            if (!dateValue) return '';
+        
+            const value = String(dateValue).trim();
+        
+            // 1. Si la fecha ya viene en formato ISO (YYYY-MM-DD)
+            const isoMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})/);
+            if (isoMatch) {
+              return `${isoMatch[1]}-${isoMatch[2]}-${isoMatch[3]}`;
+            }
+        
+            // 2. Si viene formateada desde Google Sheets en formato (DD/MM/YYYY)
+            const localMatch = value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+            if (localMatch) {
+              const dia = localMatch[1].padStart(2, '0');
+              const mes = localMatch[2].padStart(2, '0');
+              const anio = localMatch[3];
+              return `${anio}-${mes}-${dia}`;
+            }
+        
+            return '';
+          };
 
-    const value = String(dateValue).trim();
-
-    // Si viene como YYYY-MM-DD
-    const isoMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})/);
-    if (isoMatch) {
-      return `${isoMatch[1]}-${isoMatch[2]}-${isoMatch[3]}`;
-    }
-
-    // Si viene como DD/MM/YYYY (Formato de tu Apps Script normalizado)
-    const localMatch = value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-    if (localMatch) {
-      return `${localMatch[3]}-${localMatch[2].padStart(2, '0')}-${localMatch[1].padStart(2, '0')}`;
-    }
-
-    return '';
-  };
 
 
 
