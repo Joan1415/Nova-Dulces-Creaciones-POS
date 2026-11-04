@@ -475,57 +475,45 @@ const normalizeTime = (value) => {
     setEditingOrder(JSON.parse(JSON.stringify(order)));
   };
 
-        const getOrderCalendarDate = (dateValue) => {
-            if (!dateValue) return '';
-        
-            const value = String(dateValue).trim();
-        
-            // 1. Si la fecha ya viene en formato ISO (YYYY-MM-DD)
+          // ✅ PEGA ESTE NUEVO BLOQUE OPTIMIZADO
+        const calendarOrdersByDate = useMemo(() => {
+          return orders.reduce((groups, order) => {
+            if (!order.fechaEntrega) return groups;
+            
+            const value = String(order.fechaEntrega).trim();
+            let dateKey = '';
+      
+            // Si ya viene en formato correcto YYYY-MM-DD
             const isoMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})/);
             if (isoMatch) {
-              return `${isoMatch[1]}-${isoMatch[2]}-${isoMatch[3]}`;
+              dateKey = `${isoMatch[1]}-${isoMatch[2]}-${isoMatch[3]}`;
+            } else {
+              // Conversión estricta si viene en formato DD/MM/YYYY de Google Sheets
+              const localMatch = value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+              if (localMatch) {
+                dateKey = `${localMatch[3]}-${localMatch[2].padStart(2, '0')}-${localMatch[1].padStart(2, '0')}`;
+              }
             }
-        
-            // 2. Si viene formateada desde Google Sheets en formato (DD/MM/YYYY)
-            const localMatch = value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-            if (localMatch) {
-              const dia = localMatch[1].padStart(2, '0');
-              const mes = localMatch[2].padStart(2, '0');
-              const anio = localMatch[3];
-              return `${anio}-${mes}-${dia}`;
-            }
-        
-            return '';
-          };
-
-
-
-
-  const calendarOrdersByDate = orders.reduce((groups, order) => {
-    const dateKey = getOrderCalendarDate(order.fechaEntrega);
-  
-    if (!dateKey) return groups;
-  
-    if (!groups[dateKey]) groups[dateKey] = [];
-  
-    groups[dateKey].push(order);
-  
-    return groups;
-  }, {});
-
-
-    
-  
-  const selectedDayOrders = (calendarOrdersByDate[selectedCalendarDate] || [])
-    .slice()
-    .sort((a, b) => {
-      const getMinutes = (timeValue) => {
-        const match = String(timeValue || '').match(/T?(\d{1,2}):(\d{2})/);
-        return match ? Number(match[1]) * 60 + Number(match[2]) : 0;
-      };
-  
-      return getMinutes(a.horaEntrega) - getMinutes(b.horaEntrega);
-    });
+      
+            if (!dateKey) return groups;
+            if (!groups[dateKey]) groups[dateKey] = [];
+            groups[dateKey].push(order);
+            return groups;
+          }, {});
+        }, [orders]);
+      
+        const selectedDayOrders = useMemo(() => {
+          return (calendarOrdersByDate[selectedCalendarDate] || [])
+            .slice()
+            .sort((a, b) => {
+              const getMinutes = (timeValue) => {
+                const match = String(timeValue || '').match(/T?(\d{1,2}):(\d{2})/);
+                return match ? Number(match[1]) * 60 + Number(match[2]) : 0;
+              };
+              return getMinutes(a.horaEntrega) - getMinutes(b.horaEntrega);
+            });
+        }, [calendarOrdersByDate, selectedCalendarDate]);
+      
 
   
   const calendarYear = calendarMonth.getFullYear();
