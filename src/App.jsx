@@ -143,6 +143,7 @@ export default function App() {
     direccionNotas: '',
     metodoPago: 'Efectivo',
     fechaEntrega: new Date().toISOString().split('T')[0],
+    
     horaEntrega: '14:00'
   });
 
@@ -205,31 +206,23 @@ export default function App() {
         .includes(String(value).trim().toLowerCase());
     };
 
-    const formatDate = (value) => {
+          const formatDate = (value) => {
       if (!value) return "";
       const text = String(value).trim();
-      if (!text) return "";
-
       const match = text.match(/^(\d{4})-(\d{2})-(\d{2})/);
-      if (match) {
-        return `${match[3]}/${match[2]}/${match[1]}`;
-      }
-
-      const localMatch = text.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-      if (localMatch) return text;
-
+      if (match) return `${match[3]}/${match[2]}/${match[1]}`;
+      if (/^\d{2}\/\d{2}\/\d{4}$/.test(text)) return text;
       return text;
     };
 
     const normalizeTime = (value) => {
       if (!value) return "";
       const text = String(value).trim();
-
-      let hours = 0;
-      let minutes = "";
-
       const isoMatch = text.match(/T(\d{2}):(\d{2})/);
       const timeMatch = text.match(/^(\d{1,2}):(\d{2})/);
+      
+      let hours = 0;
+      let minutes = "";
 
       if (isoMatch) {
         hours = parseInt(isoMatch[1], 10);
@@ -244,9 +237,9 @@ export default function App() {
       const ampm = hours >= 12 ? 'PM' : 'AM';
       let h12 = hours % 12;
       h12 = h12 ? h12 : 12;
-
       return `${String(h12).padStart(2, "0")}:${minutes} ${ampm}`;
     };
+
 
     const normalizeDetail = (d) => ({
       idPedido: get(d, "ID Pedido"),
@@ -449,54 +442,51 @@ export default function App() {
   };
 
           // ✅ PEGA ESTE NUEVO BLOQUE OPTIMIZADO
-        const calendarOrdersByDate = useMemo(() => {
-          return orders.reduce((groups, order) => {
-            if (!order.fechaEntrega) return groups;
+            const calendarOrdersByDate = useMemo(() => {
+                return orders.reduce((groups, order) => {
+                  if (!order.fechaEntrega) return groups;
+                  const value = String(order.fechaEntrega).trim();
+                  let dateKey = '';
             
-            const value = String(order.fechaEntrega).trim();
-            let dateKey = '';
-      
-            // Si ya viene en formato correcto YYYY-MM-DD
-            const isoMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})/);
-            if (isoMatch) {
-              dateKey = `${isoMatch[1]}-${isoMatch[2]}-${isoMatch[3]}`;
-            } else {
-              // Conversión estricta si viene en formato DD/MM/YYYY de Google Sheets
-              const localMatch = value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-              if (localMatch) {
-                dateKey = `${localMatch[3]}-${localMatch[2].padStart(2, '0')}-${localMatch[1].padStart(2, '0')}`;
-              }
-            }
-      
-            if (!dateKey) return groups;
-            if (!groups[dateKey]) groups[dateKey] = [];
-            groups[dateKey].push(order);
-            return groups;
-          }, {});
-        }, [orders]);
-      
-          const selectedDayOrders = (calendarOrdersByDate[selectedCalendarDate] || [])
-              .slice()
-              .sort((a, b) => {
-                const getMinutes = (timeValue) => {
-                  if (!timeValue) return 0;
-                  const strTime = String(timeValue).trim();
-                  const match = strTime.match(/T?(\d{1,2}):(\d{2})/);
-                  if (match) {
-                    return Number(match[1]) * 60 + Number(match[2]);
+                  const isoMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})/);
+                  if (isoMatch) {
+                    dateKey = `${isoMatch[1]}-${isoMatch[2]}-${isoMatch[3]}`;
+                  } else {
+                    const localMatch = value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+                    if (localMatch) {
+                      dateKey = `${localMatch[3]}-${localMatch[2].padStart(2, '0')}-${localMatch[1].padStart(2, '0')}`;
+                    }
                   }
-                  // Si no hace match pero tiene formato simple "HH:MM"
-                  const parts = strTime.split(':');
-                  if (parts.length >= 2) {
-                    const h = Number(parts[0]);
-                    const m = Number(parts[1]);
-                    if (!isNaN(h) && !isNaN(m)) return h * 60 + m;
+            
+                  if (dateKey) {
+                    if (!groups[dateKey]) groups[dateKey] = [];
+                    groups[dateKey].push(order);
                   }
-                  return 0;
-                };
-          
-                return getMinutes(a.horaEntrega) - getMinutes(b.horaEntrega);
-              });
+                  return groups;
+                }, {});
+              }, [orders]);
+            
+              const selectedDayOrders = useMemo(() => {
+                return (calendarOrdersByDate[selectedCalendarDate] || [])
+                  .slice()
+                  .sort((a, b) => {
+                    const getMinutes = (timeValue) => {
+                      if (!timeValue) return 0;
+                      const strTime = String(timeValue).trim();
+                      const match = strTime.match(/T?(\d{1,2}):(\d{2})/);
+                      if (match) return Number(match[1]) * 60 + Number(match[2]);
+                      const parts = strTime.split(':');
+                      if (parts.length >= 2) {
+                        const h = Number(parts[0]);
+                        const m = Number(parts[1]);
+                        if (!isNaN(h) && !isNaN(m)) return h * 60 + m;
+                      }
+                      return 0;
+                    };
+                    return getMinutes(a.horaEntrega) - getMinutes(b.horaEntrega);
+                  });
+              }, [calendarOrdersByDate, selectedCalendarDate]);
+
 
       
 
