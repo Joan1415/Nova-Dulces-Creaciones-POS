@@ -358,19 +358,23 @@ const normalizeTime = (value) => {
       // También actualiza si Google Sheets devuelve cero pedidos.
       setOrders(realOrders);
 
-      console.info("Pedidos sincronizados:", realOrders.length);
+            console.info("Pedidos sincronizados:", realOrders.length);
       console.info("Detalles recibidos:", rawDetails.length);
-    } catch (error) {
-      if (error.name !== "AbortError") {
-        console.error("Error sincronizando pedidos:", error);
-      }
-    }
-  };
+          } catch (error) {
+            if (error.name !== "AbortError") {
+              console.error("Error sincronizando pedidos:", error);
+            }
+          }
+        };
+      
+        // Ejecución correcta y segura de la carga al montar o cambiar el apiUrl
+        loadOrders();
+      
+        return () => {
+          controller.abort();
+        };
+      }, [apiUrl]);
 
-  loadOrders();
-
-  return () => controller.abort();
-}, [apiUrl]);
 
   
   // Carrito helpers
@@ -470,25 +474,26 @@ const normalizeTime = (value) => {
     setEditingOrder(JSON.parse(JSON.stringify(order)));
   };
 
-    const getOrderCalendarDate = (dateValue) => {
+      const getOrderCalendarDate = (dateValue) => {
     if (!dateValue) return '';
 
     const value = String(dateValue).trim();
 
-    // Si la fecha ya viene como YYYY-MM-DD, conservamos el día exacto.
+    // Si viene como YYYY-MM-DD
     const isoMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})/);
     if (isoMatch) {
       return `${isoMatch[1]}-${isoMatch[2]}-${isoMatch[3]}`;
     }
 
-    // Compatibilidad y conversión estricta con fechas formateadas como DD/MM/YYYY de Google Sheets.
+    // Si viene como DD/MM/YYYY (Formato de tu Apps Script normalizado)
     const localMatch = value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
     if (localMatch) {
       return `${localMatch[3]}-${localMatch[2].padStart(2, '0')}-${localMatch[1].padStart(2, '0')}`;
     }
 
-    return value;
+    return '';
   };
+
 
 
   const calendarOrdersByDate = orders.reduce((groups, order) => {
