@@ -125,8 +125,8 @@ export default function App() {
   useEffect(() => { localStorage.setItem('nova_orders', JSON.stringify(orders)); }, [orders]);
   useEffect(() => { localStorage.setItem('nova_expenses', JSON.stringify(expenses)); }, [expenses]);
   useEffect(() => { localStorage.setItem('nova_api_url', apiUrl); }, [apiUrl]);
-  // Sincronizar pedidos desde Google Sheets de forma segura y blindada
-  // Sincronizar datos y pedidos desde Google Sheets de forma exacta
+
+  // Sincronizar pedidos reales desde Google Sheets
   useEffect(() => {
     if (!apiUrl) return;
     
@@ -134,17 +134,17 @@ export default function App() {
       .then(res => res.json())
       .then(response => {
         try {
-          // Tu Apps Script responde con { success: true, data: { catalogo, pedidos, detalles, gastos } }
           const rawData = response?.data || response;
           
-          if (rawData && Array.isArray(rawData.pedidos)) {
-            const mappedOrders = rawData.pedidos.map(o => ({
-              idPedido: o.idPedido || o[0] || 'PED-0000',
+          // Verificamos si existen pedidos reales en la respuesta del Apps Script
+          if (rawData && rawData.pedidos && Array.isArray(rawData.pedidos)) {
+            const realOrders = rawData.pedidos.map(o => ({
+              idPedido: o.idPedido || o.ID || o[0] || 'PED-0000',
               fechaRegistro: o.fechaRegistro || o[1] || '',
-              fechaEntrega: o.fechaEntrega || o[2] || new Date().toISOString().split('T')[0],
-              horaEntrega: o.horaEntrega || o[3] || '14:00',
-              cliente: o.cliente || o[4] || 'Cliente General',
-              telefono: o.telefono || o[5] || '',
+              fechaEntrega: o.fechaEntrega || o[2] || '',
+              horaEntrega: o.horaEntrega || o[3] || '',
+              cliente: o.cliente || o.Cliente || o[4] || '',
+              telefono: o.telefono || o.Telefono || o[5] || '',
               tipoEntrega: o.tipoEntrega || o[6] || 'Retiro en Tienda',
               costoDelivery: Number(o.costoDelivery || o[7]) || 0,
               llevaExtras: Boolean(o.llevaExtras ?? o[8]),
@@ -152,16 +152,20 @@ export default function App() {
               costoExtras: Number(o.costoExtras || o[10]) || 0,
               direccionNotas: o.direccionNotas || o[11] || '',
               metodoPago: o.metodoPago || o[12] || 'Efectivo',
-              estado: o.estado || o[13] || 'Por confirmar',
-              totalPedido: Number(o.totalPedido || o[14]) || 0,
+              estado: o.estado || o.Estado || o[13] || 'Por confirmar',
+              totalPedido: Number(o.totalPedido || o.Total || o[14]) || 0,
               costoProduccion: Number(o.costoProduccion || o[15]) || 0,
               gananciaNeta: Number(o.gananciaNeta || o[16]) || 0,
-              detalles: []
+              detalles: Array.isArray(o.detalles) ? o.detalles : []
             }));
-            setOrders(mappedOrders);
+            
+            // Actualizamos el estado solo si hay pedidos reales
+            if (realOrders.length > 0) {
+              setOrders(realOrders);
+            }
           }
         } catch (innerErr) {
-          console.error('Error mapeando los datos de Google Sheets:', innerErr);
+          console.error('Error al leer los pedidos de Google Sheets:', innerErr);
         }
       })
       .catch(err => {
