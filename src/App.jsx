@@ -1,9 +1,12 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
-import { 
-  ShoppingCart, Plus, Trash2, Edit, CheckCircle, Clock, 
-  DollarSign, TrendingUp, Package, Settings, Printer, 
-  Store, Truck, FileText, RefreshCw, AlertCircle, X, Save, ChefHat, Calendar as CalendarIcon, Sparkles
+import {
+  ShoppingCart, Plus, Trash2, Edit, CheckCircle, Clock,
+  DollarSign, TrendingUp, Package, Settings, Printer,
+  Store, Truck, FileText, RefreshCw, AlertCircle, X, Save, ChefHat,
+  Calendar as CalendarIcon, Sparkles, ChevronLeft, ChevronRight
 } from 'lucide-react';
+
 
 // Catálogo oficial predeterminado de Nova Dulces Creaciones
 const INITIAL_PRODUCTS = [
@@ -86,6 +89,11 @@ const formatDisplayDate = (value) => {
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('pos');
+  const [calendarMonth, setCalendarMonth] = useState(() => new Date());
+  const [selectedCalendarDate, setSelectedCalendarDate] = useState(() => {
+    const today = new Date();
+    return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  });
   const [products, setProducts] = useState(() => {
     const saved = localStorage.getItem('nova_products');
     return saved ? JSON.parse(saved) : INITIAL_PRODUCTS;
@@ -444,6 +452,81 @@ const normalizeTime = (value) => {
     setEditingOrder(JSON.parse(JSON.stringify(order)));
   };
 
+  const getOrderCalendarDate = (dateValue) => {
+  if (!dateValue) return '';
+
+  const value = String(dateValue).trim();
+
+  // Si la fecha ya viene como YYYY-MM-DD, conservamos el día exacto.
+  const isoMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (isoMatch) {
+    return `${isoMatch[1]}-${isoMatch[2]}-${isoMatch[3]}`;
+  }
+
+  // Compatibilidad con fechas como DD/MM/YYYY.
+  const localMatch = value.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+  if (localMatch) {
+    return `${localMatch[3]}-${localMatch[2]}-${localMatch[1]}`;
+  }
+
+  return '';
+  };
+
+  const calendarOrdersByDate = orders.reduce((groups, order) => {
+    const dateKey = getOrderCalendarDate(order.fechaEntrega);
+  
+    if (!dateKey) return groups;
+  
+    if (!groups[dateKey]) groups[dateKey] = [];
+  
+    groups[dateKey].push(order);
+  
+    return groups;
+  }, {});
+  
+  const selectedDayOrders = (calendarOrdersByDate[selectedCalendarDate] || [])
+    .slice()
+    .sort((a, b) => {
+      const getMinutes = (timeValue) => {
+        const match = String(timeValue || '').match(/T?(\d{1,2}):(\d{2})/);
+        return match ? Number(match[1]) * 60 + Number(match[2]) : 0;
+      };
+  
+      return getMinutes(a.horaEntrega) - getMinutes(b.horaEntrega);
+    });
+
+  const calendarYear = calendarMonth.getFullYear();
+    const calendarMonthIndex = calendarMonth.getMonth();
+    
+    const firstDayOffset =
+      (new Date(calendarYear, calendarMonthIndex, 1).getDay() + 6) % 7;
+    
+    const daysInCalendarMonth =
+      new Date(calendarYear, calendarMonthIndex + 1, 0).getDate();
+    
+    const calendarCells = [
+      ...Array(firstDayOffset).fill(null),
+      ...Array.from({ length: daysInCalendarMonth }, (_, i) => i + 1),
+    ];
+    
+    const changeCalendarMonth = (amount) => {
+      setCalendarMonth(current =>
+        new Date(current.getFullYear(), current.getMonth() + amount, 1)
+      );
+    };
+    
+    const selectCalendarDay = (day) => {
+      if (!day) return;
+    
+      const year = calendarYear;
+      const month = String(calendarMonthIndex + 1).padStart(2, '0');
+      const date = String(day).padStart(2, '0');
+    
+      setSelectedCalendarDate(`${year}-${month}-${date}`);
+    };
+
+  
+
   // Guardar Cambios del Pedido Editado
   const handleSaveEditedOrder = async (e) => {
     e.preventDefault();
@@ -694,84 +777,225 @@ const normalizeTime = (value) => {
         {activeTab === 'pos' && (
           <div className="space-y-6">
             
-            {/* SECCIÓN CALENDARIO Y AGENDA DE PRÓXIMAS ENTREGAS */}
+            
+            
+            {/* SECCIÓN CALENDARIO Y AGENDA DE ENTREGAS */}
             <div className="bg-white p-5 rounded-2xl shadow-sm border border-[#E8DCC4]">
-              <div className="flex flex-wrap items-center justify-between gap-2 mb-4 border-b pb-3">
+              <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
                 <div className="flex items-center gap-2">
-                  <CalendarIcon size={22} className="text-[#A56A41]" />
-                  <h2 className="font-bold text-lg text-[#4A3B32]">Próximas Entregas (Orden Cronológico)</h2>
+                  <CalendarIcon size={24} className="text-[#A56A41]" />
+                  <div>
+                    <h2 className="font-bold text-lg text-[#4A3B32]">
+                      Calendario de Entregas
+                    </h2>
+                    <p className="text-xs text-gray-500">
+                      Selecciona un día para consultar sus pedidos.
+                    </p>
+                  </div>
                 </div>
-                {/* Leyenda de Estados */}
-                <div className="flex flex-wrap gap-2 text-xs font-semibold">
-                  {ESTADOS.map(st => {
-                    const style = STATUS_STYLES[st];
-                    return (
-                      <span key={st} className={`px-2 py-1 rounded-md border ${style.bg} ${style.text} ${style.border}`}>
-                        {st}
-                      </span>
-                    );
-                  })}
+            
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      const today = new Date();
+                      setCalendarMonth(new Date(today.getFullYear(), today.getMonth(), 1));
+                      setSelectedCalendarDate(
+                        `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+                      );
+                    }}
+                    className="px-3 py-2 rounded-lg border border-[#E8DCC4] text-sm font-semibold text-[#4A3B32] hover:bg-[#FAF6EF]"
+                  >
+                    Hoy
+                  </button>
+            
+                  <button
+                    onClick={() => changeCalendarMonth(-1)}
+                    className="p-2 rounded-lg border border-[#E8DCC4] hover:bg-[#FAF6EF]"
+                    aria-label="Mes anterior"
+                  >
+                    <ChevronLeft size={18} />
+                  </button>
+            
+                  <button
+                    onClick={() => changeCalendarMonth(1)}
+                    className="p-2 rounded-lg border border-[#E8DCC4] hover:bg-[#FAF6EF]"
+                    aria-label="Mes siguiente"
+                  >
+                    <ChevronRight size={18} />
+                  </button>
                 </div>
               </div>
-
-              {sortedUpcomingOrders.length === 0 ? (
-                <p className="text-center py-6 text-gray-400 text-sm">No hay entregas pendientes programadas.</p>
-              ) : (
-                <div className="flex gap-4 overflow-x-auto pb-2">
-                  {sortedUpcomingOrders.map(ord => {
-                    const style = STATUS_STYLES[ord.estado] || STATUS_STYLES['Por confirmar'];
-                    return (
-                      <div 
-                        key={ord.idPedido} 
-                        className={`min-w-[250px] max-w-[270px] p-4 rounded-xl border ${style.bg} ${style.border} flex flex-col justify-between shadow-sm`}
-                      >
-                        <div>
-                          <div className="flex justify-between items-center mb-1">
-                            <span className="font-bold text-xs font-mono bg-white/70 px-1.5 py-0.5 rounded">{ord.idPedido}</span>
-                            <span className={`text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full border ${style.text} bg-white/80`}>
-                              {ord.estado}
-                            </span>
+            
+              <h3 className="text-center font-bold text-[#4A3B32] text-lg mb-4 capitalize">
+                {calendarMonth.toLocaleDateString('es-DO', {
+                  month: 'long',
+                  year: 'numeric',
+                })}
+              </h3>
+            
+              <div className="grid grid-cols-7 gap-1 sm:gap-2">
+                {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map(day => (
+                  <div
+                    key={day}
+                    className="text-center text-xs font-bold text-gray-500 py-2"
+                  >
+                    {day}
+                  </div>
+                ))}
+            
+                {calendarCells.map((day, index) => {
+                  if (!day) {
+                    return <div key={`empty-${index}`} />;
+                  }
+            
+                  const dateKey =
+                    `${calendarYear}-${String(calendarMonthIndex + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            
+                  const dayOrders = calendarOrdersByDate[dateKey] || [];
+                  const dayStatuses = [...new Set(dayOrders.map(order => order.estado))];
+                  const isSelected = selectedCalendarDate === dateKey;
+                  const isToday = dateKey ===
+                    `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`;
+            
+                  return (
+                    <button
+                      key={dateKey}
+                      onClick={() => selectCalendarDay(day)}
+                      className={`min-h-[66px] sm:min-h-[82px] rounded-xl border p-1 sm:p-2 flex flex-col items-center gap-1 transition-colors ${
+                        isSelected
+                          ? 'border-[#A56A41] ring-2 ring-[#A56A41]/30 bg-[#FAF0E4]'
+                          : dayOrders.length
+                            ? 'border-[#E8DCC4] hover:border-[#A56A41] bg-[#FFFCF7]'
+                            : 'border-transparent hover:bg-[#FAF6EF]'
+                      }`}
+                      aria-label={`${day} de ${calendarMonth.toLocaleDateString('es-DO', { month: 'long' })}, ${dayOrders.length} pedidos`}
+                    >
+                      <span className={`text-sm font-bold ${
+                        isToday ? 'bg-[#A56A41] text-white rounded-full w-7 h-7 flex items-center justify-center' : 'text-[#4A3B32]'
+                      }`}>
+                        {day}
+                      </span>
+            
+                      {dayOrders.length > 0 && (
+                        <>
+                          <span className="text-[10px] font-semibold text-gray-600">
+                            {dayOrders.length} {dayOrders.length === 1 ? 'pedido' : 'pedidos'}
+                          </span>
+            
+                          <div className="flex flex-wrap justify-center gap-1">
+                            {dayStatuses.map(status => {
+                              const statusStyle =
+                                STATUS_STYLES[status] || STATUS_STYLES['Por confirmar'];
+            
+                              return (
+                                <span
+                                  key={status}
+                                  title={status}
+                                  className={`w-2.5 h-2.5 rounded-full border ${statusStyle.bg} ${statusStyle.border}`}
+                                />
+                              );
+                            })}
                           </div>
-
-                          <p className="font-bold text-sm text-[#4A3B32] truncate mt-1">{ord.cliente}</p>
-                          <div className="flex items-center gap-1 text-xs text-gray-700 mt-1 font-semibold">
-                            <Clock size={14} className="text-[#A56A41]" />
-                            <span>{formatDisplayDate(ord.fechaEntrega)} — {formatTime12h(ord.horaEntrega)}</span>
-                          </div>
-
-                          {ord.llevaExtras && (
-                            <div className="mt-2 text-[11px] bg-white/80 p-1.5 rounded border border-amber-200">
-                              <span className="font-bold text-amber-900">✨ Extras (+RD$ {ord.costoExtras}):</span>
-                              <p className="text-gray-700 truncate">{ord.detallesExtras}</p>
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="flex justify-between items-center border-t border-black/10 pt-2 mt-3 text-xs">
-                          <span className="font-bold text-[#4A3B32]">RD$ {ord.totalPedido.toLocaleString()}</span>
-                          <div className="flex gap-1">
-                            <button 
-                              onClick={() => startEditingOrder(ord)}
-                              className="p-1 bg-white/90 rounded-md text-blue-700 hover:bg-white shadow-sm"
-                              title="Editar Pedido Completo"
-                            >
-                              <Edit size={14} />
-                            </button>
-                            <button 
-                              onClick={() => setSelectedOrderReceipt(ord)}
-                              className="p-1 bg-white/90 rounded-md text-[#4A3B32] hover:bg-white shadow-sm"
-                              title="Ver Recibo"
-                            >
-                              <Printer size={14} />
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
+                        </>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            
+              <div className="flex flex-wrap gap-x-4 gap-y-2 mt-4 pt-4 border-t border-[#E8DCC4]">
+                {ESTADOS.map(status => {
+                  const statusStyle =
+                    STATUS_STYLES[status] || STATUS_STYLES['Por confirmar'];
+            
+                  return (
+                    <div key={status} className="flex items-center gap-1.5 text-xs text-gray-600">
+                      <span className={`w-3 h-3 rounded-full border ${statusStyle.bg} ${statusStyle.border}`} />
+                      {status}
+                    </div>
+                  );
+                })}
+              </div>
+            
+              <div className="mt-6 pt-5 border-t border-[#E8DCC4]">
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+                  <h3 className="font-bold text-[#4A3B32]">
+                    Entregas del {selectedCalendarDate.split('-').reverse().join('/')}
+                  </h3>
+            
+                  <span className="text-xs text-gray-500">
+                    {selectedDayOrders.length} {selectedDayOrders.length === 1 ? 'pedido' : 'pedidos'}
+                  </span>
                 </div>
-              )}
+            
+                {selectedDayOrders.length === 0 ? (
+                  <div className="text-center py-8 bg-[#FAF6EF] rounded-xl">
+                    <CalendarIcon size={30} className="mx-auto text-[#D6BC80] mb-2" />
+                    <p className="font-semibold text-sm text-[#4A3B32]">
+                      No hay pedidos para este día.
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Selecciona otra fecha para consultar sus entregas.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {selectedDayOrders.map(order => {
+                      const statusStyle =
+                        STATUS_STYLES[order.estado] || STATUS_STYLES['Por confirmar'];
+            
+                      return (
+                        <button
+                          key={order.idPedido}
+                          onClick={() => {
+                            setActiveTab('orders');
+                            startEditingOrder(order);
+                          }}
+                          className={`w-full text-left p-4 rounded-xl border ${statusStyle.bg} ${statusStyle.border} hover:shadow-md transition-all`}
+                        >
+                          <div className="flex flex-wrap items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className="font-bold font-mono text-sm text-[#4A3B32]">
+                                  {order.idPedido}
+                                </span>
+                                <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded-full border ${statusStyle.text} ${statusStyle.border} bg-white/70`}>
+                                  {order.estado}
+                                </span>
+                              </div>
+            
+                              <p className="font-bold text-sm text-[#4A3B32] mt-2">
+                                {order.cliente}
+                              </p>
+            
+                              <p className="text-xs text-gray-600 mt-1">
+                                <Clock size={13} className="inline mr-1" />
+                                {formatTime12h(order.horaEntrega)}
+                              </p>
+                            </div>
+            
+                            <div className="text-right">
+                              <p className="font-extrabold text-sm text-[#4A3B32]">
+                                RD$ {Number(order.totalPedido || 0).toLocaleString('es-DO')}
+                              </p>
+                              <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#A56A41] mt-2">
+                                Revisar pedido <ChevronRight size={14} />
+                              </span>
+                            </div>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             </div>
+
+
+
+
+
+            
 
             {/* SECCIÓN CATÁLOGO + CARRITO LATERAL */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
