@@ -306,6 +306,8 @@ const normalizeTime = (value) => {
       const data = response.data;
 
       console.log("CATÁLOGO RECIBIDO DE SHEETS:", data.catalogo);
+      console.log("PRIMER PRODUCTO DE SHEETS:", data.catalogo[0]);
+      console.log("COLUMNAS DEL PRODUCTO:", Object.keys(data.catalogo[0] || {}));
 
       if (!data || !Array.isArray(data.pedidos)) {
         throw new Error("La respuesta no contiene data.pedidos");
