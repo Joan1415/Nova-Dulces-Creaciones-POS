@@ -498,13 +498,7 @@ const normalizeTime = (value) => {
       return getMinutes(a.horaEntrega) - getMinutes(b.horaEntrega);
     });
 
-  console.log('PRUEBA CALENDARIO:', {
-      fechaSeleccionada: selectedCalendarDate,
-      fechasDisponibles: Object.keys(calendarOrdersByDate),
-      pedidosEncontrados: (calendarOrdersByDate[selectedCalendarDate] || []).length,
-      pedidosMostrados: selectedDayOrders.length
-    });
-
+  
   const calendarYear = calendarMonth.getFullYear();
     const calendarMonthIndex = calendarMonth.getMonth();
     
@@ -941,9 +935,7 @@ const normalizeTime = (value) => {
                     Entregas del {selectedCalendarDate.split('-').reverse().join('/')}                  
                   </h3>
                  
-                  <p className="text-xs text-red-600">
-                      Fecha de prueba: {selectedCalendarDate}
-                  </p>
+                 
 
             
                   <span className="text-xs text-gray-500">
