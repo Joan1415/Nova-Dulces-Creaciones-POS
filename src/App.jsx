@@ -470,25 +470,26 @@ const normalizeTime = (value) => {
     setEditingOrder(JSON.parse(JSON.stringify(order)));
   };
 
-  const getOrderCalendarDate = (dateValue) => {
-  if (!dateValue) return '';
+    const getOrderCalendarDate = (dateValue) => {
+    if (!dateValue) return '';
 
-  const value = String(dateValue).trim();
+    const value = String(dateValue).trim();
 
-  // Si la fecha ya viene como YYYY-MM-DD, conservamos el día exacto.
-  const isoMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})/);
-  if (isoMatch) {
-    return `${isoMatch[1]}-${isoMatch[2]}-${isoMatch[3]}`;
-  }
+    // Si la fecha ya viene como YYYY-MM-DD, conservamos el día exacto.
+    const isoMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (isoMatch) {
+      return `${isoMatch[1]}-${isoMatch[2]}-${isoMatch[3]}`;
+    }
 
-  // Compatibilidad con fechas como DD/MM/YYYY.
-  const localMatch = value.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
-  if (localMatch) {
-    return `${localMatch[3]}-${localMatch[2]}-${localMatch[1]}`;
-  }
+    // Compatibilidad y conversión estricta con fechas formateadas como DD/MM/YYYY de Google Sheets.
+    const localMatch = value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+    if (localMatch) {
+      return `${localMatch[3]}-${localMatch[2].padStart(2, '0')}-${localMatch[1].padStart(2, '0')}`;
+    }
 
-  return '';
+    return value;
   };
+
 
   const calendarOrdersByDate = orders.reduce((groups, order) => {
     const dateKey = getOrderCalendarDate(order.fechaEntrega);
