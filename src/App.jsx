@@ -184,7 +184,6 @@ useEffect(() => {
         return obj[key];
       }
     }
-
     return "";
   };
 
@@ -193,7 +192,6 @@ useEffect(() => {
     if (typeof value === "number") {
       return Number.isFinite(value) ? value : 0;
     }
-
     const parsed = Number(String(value).trim().replace(/,/g, ""));
     return Number.isFinite(parsed) ? parsed : 0;
   };
@@ -201,45 +199,33 @@ useEffect(() => {
   const toBoolean = (value) => {
     if (typeof value === "boolean") return value;
     if (typeof value === "number") return value !== 0;
-
     return ["true", "1", "sí", "si", "yes"]
       .includes(String(value).trim().toLowerCase());
   };
 
-  // Convierte una hora de Sheets a HH:mm.
-  
-const formatDate = (value) => {
-  if (!value) return "";
+  const formatDate = (value) => {
+    if (!value) return "";
+    const text = String(value).trim();
+    if (!text) return "";
 
-  // Evita que una fecha vacía se convierta en una fecha ficticia.
-  const text = String(value).trim();
-  if (!text) return "";
+    const match = text.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (match) {
+      return `${match[3]}/${match[2]}/${match[1]}`;
+    }
 
-  // Extrae YYYY-MM-DD de fechas ISO sin problemas de zona horaria.
-  const match = text.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    const localMatch = text.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    if (localMatch) return text;
 
-  if (match) {
-    return `${match[3]}/${match[2]}/${match[1]}`;
-  }
-
-  // Admite fechas ya formateadas como DD/MM/YYYY.
-  const localMatch = text.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-
-  if (localMatch) return text;
-
-  // No altera silenciosamente valores que no reconoce.
-  return text;
-};
+    return text;
+  };
 
   const normalizeTime = (value) => {
     if (!value) return "";
-
     const text = String(value).trim();
 
-    // 1. Extraer HH:MM ya sea de una fecha ISO o formato simple
     let hours = 0;
     let minutes = "";
-    
+
     const isoMatch = text.match(/T(\d{2}):(\d{2})/);
     const timeMatch = text.match(/^(\d{1,2}):(\d{2})/);
 
@@ -250,28 +236,117 @@ const formatDate = (value) => {
       hours = parseInt(timeMatch[1], 10);
       minutes = timeMatch[2];
     } else {
-      return text; // Si no reconoce el formato, devuelve el valor original
+      return text;
     }
 
-    // 2. Convertir mecánicamente a formato 12 horas (AM/PM) en la carga inicial
     const ampm = hours >= 12 ? 'PM' : 'AM';
     let h12 = hours % 12;
-    h12 = h12 ? h12 : 12; // Si es 00, se transforma en 12
+    h12 = h12 ? h12 : 12;
 
     return `${String(h12).padStart(2, "0")}:${minutes} ${ampm}`;
   };
 
+  const normalizeDetail = (d) => ({
+    idPedido: get(d, "ID Pedido"),
+    idDetalle: get(d, "ID Detalle"),
+    idProducto: get(d, "ID Producto"),
+    producto: get(d, "Producto"),
+    categoria: get(d, "Categoría"),
+    cantidad: toNumber(get(d, "Cantidad")),
+    precioUnitario: toNumber(get(d, "Precio Unitario (DOP)")),
+    subtotal: toNumber(get(d, "Subtotal (DOP)")),
+    costoProduccion: toNumber(get(d, "Costo Producción (DOP)")),
+  });
 
-  // Ejemplo: 14:00:00 -> 14:00
-  const timeMatch = text.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
+  const normalizeOrder = (o, detailsByOrder) => {
+    const idPedido = get(o, "ID Pedido");
+    return {
+      idPedido,
+      fechaRegistro: get(o, "Fecha Registro"),
+      fechaEntrega: formatDate(get(o, "Fecha Entrega")),
+      horaEntrega: normalizeTime(get(o, "Hora Entrega")),
+      cliente: get(o, "Cliente"),
+      telefono: get(o, "Teléfono"),
+      tipoEntrega: get(o, "Tipo Entrega"),
+      costoDelivery: toNumber(get(o, "Costo Delivery (DOP)")),
+      llevaExtras: toBoolean(get(o, "Lleva Extras")),
+      detallesExtras: get(o, "Detalles Extras"),
+      costoExtras: toNumber(get(o, "Costo Extras (DOP)")),
+      direccionNotas: get(o, "Dirección / Notas"),
+      metodoPago: get(o, "Método de Pago"),
+      estado: get(o, "Estado"),
+      totalPedido: toNumber(get(o, "Total Pedido (DOP)")),
+      costoProduccion: toNumber(get(o, "Costo Producción (DOP)")),
+      gananciaNeta: toNumber(get(o, "Ganancia Neta (DOP)")),
+      detalles: detailsByOrder[String(idPedido)] || [],
+    };
+  };
 
-  if (timeMatch) {
-    return `${timeMatch[1].padStart(2, "0")}:${timeMatch[2]}`;
-  }
+  const loadOrders = async () => {
+    try {
+      const res = await fetch(apiUrl, {
+        method: "GET",
+        signal: controller.signal,
+      });
 
-  return text;
-};
+      if (!res.ok) throw new Error(`Error HTTP ${res.status}`);
+      const response = await res.json();
+      if (response?.success !== true) {
+        throw new Error(response?.message || "Respuesta inválida de Apps Script");
+      }
 
+      const data = response.data;
+
+      if (Array.isArray(data.catalogo)) {
+        const realProducts = data.catalogo.map((product) => ({
+          id: String(product.ID || ''),
+          nombre: String(product.Producto || ''),
+          categoria: String(product['Categoría'] || ''),
+          precio: Number(product['Precio Venta (DOP)'] || 0),
+          costo: Number(product['Costo Producción (DOP)'] || 0),
+          activo: product.Activo === true || String(product.Activo).toLowerCase() === 'true'
+        }));
+        setProducts(realProducts);
+        localStorage.setItem('nova_products', JSON.stringify(realProducts));
+      }
+
+      if (!data || !Array.isArray(data.pedidos)) {
+        throw new Error("La respuesta no contiene data.pedidos");
+      }
+
+      const rawDetails = Array.isArray(data.detalles) ? data.detalles : [];
+      const detailsByOrder = Object.create(null);
+
+      rawDetails.forEach((detail) => {
+        if (!detail || typeof detail !== "object") return;
+        const id = get(detail, "ID Pedido");
+        if (id === "") return;
+        const key = String(id);
+        if (!detailsByOrder[key]) {
+          detailsByOrder[key] = [];
+        }
+        detailsByOrder[key].push(normalizeDetail(detail));
+      });
+
+      const realOrders = data.pedidos
+        .filter((order) => order && typeof order === "object" && !Array.isArray(order))
+        .map((order) => normalizeOrder(order, detailsByOrder));
+
+      setOrders(realOrders);
+      console.info("Pedidos sincronizados:", realOrders.length);
+    } catch (error) {
+      if (error.name !== "AbortError") {
+        console.error("Error sincronizando pedidos:", error);
+      }
+    }
+  };
+
+  loadOrders();
+
+  return () => {
+    controller.abort();
+  };
+}, [apiUrl]);
 
   const normalizeDetail = (d) => ({
     idPedido: get(d, "ID Pedido"),
